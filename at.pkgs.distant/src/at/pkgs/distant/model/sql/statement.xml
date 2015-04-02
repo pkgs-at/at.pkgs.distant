@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="preference.get"><![CDATA[
+		SELECT ALL
+				"value"
+			FROM
+				"t_preference"
+			WHERE
+				"key" = ?
+	]]></entry>
+	<entry key="preference.set"><![CDATA[
+		MERGE
+			INTO "t_preference"(
+				"key",
+				"value")
+			KEY(
+				"key")
+			VALUES(
+				?,
+				?)
+	]]></entry>
+	<entry key="build.new"><![CDATA[
+		INSERT
+			INTO "t_build"(
+				"build",
+				"project",
+				"target",
+				"region",
+				"invoked",
+				"succeed",
+				"aborted",
+				"user")
+			VALUES(
+				?,
+				?,
+				?,
+				?,
+				?,
+				0,
+				0,
+				?)
+	]]></entry>
+	<entry key="build.get"><![CDATA[
+		SELECT ALL
+				"build",
+				"project",
+				"target",
+				"region",
+				"invoked",
+				"succeed",
+				"aborted",
+				"user",
+				"timestamp"
+			FROM
+				"t_build"
+			WHERE
+				"build" = ?
+	]]></entry>
+	<entry key="build.set_count"><![CDATA[
+		UPDATE "t_build" AS B
+			SET
+				"succeed" = (
+					SELECT ALL
+							COUNT(*)
+						FROM
+							"t_build_server" AS S
+						WHERE
+							S."build" = B."build" AND
+							S."output" IS NOT NULL AND
+							S."status" = 0),
+				"aborted" = (
+					SELECT ALL
+							COUNT(*)
+						FROM
+							"t_build_server" AS A
+						WHERE
+							A."build" = B."build" AND
+							A."output" IS NOT NULL AND
+							A."status" <> 0)
+			WHERE
+				B."build" = ?
+	]]></entry>
+	<entry key="build_server.new"><![CDATA[
+		INSERT
+			INTO "t_build_server"(
+				"build",
+				"server",
+				"status",
+				"output")
+			VALUES(
+				?,
+				?,
+				0,
+				NULL)
+	]]></entry>
+	<entry key="build_server.get_first_available"><![CDATA[
+		SELECT ALL
+				"build",
+				"server",
+				"status",
+				"output",
+				"timestamp"
+			FROM
+				"t_build_server"
+			WHERE
+				"server" = ? AND
+				"output" IS NULL
+			ORDER BY
+				"build" ASC
+			LIMIT 1
+	]]></entry>
+	<entry key="build_server.set_result"><![CDATA[
+		UPDATE "t_build_server"
+			SET
+				"status" = ?,
+				"output" = ?,
+				"timestamp" = DEFAULT
+			WHERE
+				"build" = ? AND
+				"server" = ?
+	]]></entry>
+</properties>

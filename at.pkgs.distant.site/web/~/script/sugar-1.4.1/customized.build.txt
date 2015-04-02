@@ -1,0 +1,13 @@
++ Core
+ + ES5
+  + Array
+  + Date
+   - Date Locales
+  + Function
+  + Number
+  + Object
+  + Range
+  + Regexp
+  + String
+   - Inflections
+   + Language

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja-JP">
+  <head>
+[? head { ??]
+    <base href="[= $.request.contextPath =]/" />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>[= title =] | dist'ant</title>
+    <link rel="stylesheet" href="~/style/bootstrap-3.2.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/style/bootstrap-3.2.0/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="~/style/base.css" />
+    <!--[if lt IE 9]>
+    <script src="~/script/html5shiv-3.7.2.6/html5shiv-printshiv.js"></script>
+    <script src="~/script/respond-1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="~/script/sugar-1.4.1/sugar.js"></script>
+    <script src="~/script/json3-3.3.2/json3.js"></script>
+    <script src="~/script/at.pkgs-1.0.0/at.pkgs.js"></script>
+    <script src="~/script/jquery-1.11.1/jquery.js"></script>
+    <script src="~/script/jquery-at-0.9.0/jquery-at.js"></script>
+    <!--[if lt IE 8]>
+    <script src="~/script/at.pkgs.fixie-1.0.0/ltie8.js"></script>
+    <![endif]-->
+    <!--[if lt IE 9]>
+    <script src="~/script/at.pkgs.fixie-1.0.0/ltie9.js"></script>
+    <![endif]-->
+    <script src="~/style/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <style>
+[? head_style_content { ??]
+[? } head_style_content ??]
+    </style>
+[? } head ??]
+  </head>
+  <body>
+[? body { ??]
+    <div id="base_container" class="container">
+      <div id="base_header" class="col-xs-12">
+        <div id="base_header_headline">
+          <h1>dist'ant</h1>
+          <h2><small>an implementation of distributed Ant processor for deployment</small></h2>
+        </div>
+        <h3>[= title =]</h3>
+      </div>
+      <div id="base_message" class="col-xs-12">
+[% if ($.hasMessage()) { %%]
+[% Java.from($.flashMessages()).each(function(message) { %%]
+        <div class="alert [= _.bs3_alert_class(message.type) =]">
+          <p>[= message.text =]</p>
+        </div>
+[% }); %%]
+[% } %%]
+      </div>
+      <div id="base_main" class="col-xs-12">
+[? body_main { ??]
+[? } body_main ??]
+      </div>
+      <div id="base_footer" class="col-xs-12">
+        <address class="text-center">Copyright &copy; 2015 Architector Inc. All Rights Reserved.</address>
+      </div>
+    </div>
+[? } body ??]
+  </body>
+</html>

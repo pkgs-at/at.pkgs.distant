@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="build">
+	<!-- project settings -->
+	<property name="name" value="at.pkgs.distant.core"/>
+	<property name="version" value="1.0.0"/>
+	<!-- directories -->
+	<property name="bindir" value="./bin"/>
+	<property name="tmpdir" value="./tmp"/>
+	<property name="libdir" value="../at.pkgs.distant/src/at/pkgs/distant/ant"/>
+	<!-- others -->
+	<property name="javacexcludes" value="**/.svn"/>
+	<property name="javacdebug" value="true"/>
+	<property name="javactarget" value="1.6"/>
+	<!-- targets -->
+	<target name="build">
+		<mkdir dir="${tmpdir}"/>
+		<javac srcdir="./src" encoding="UTF-8" destdir="${tmpdir}" excludes="${javacexcludes}" listfiles="true" includeantruntime="false" debug="${javacdebug}" source="${javactarget}" target="${javactarget}">
+			<classpath>
+				<fileset dir="${libdir}">
+					<include name="*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="${tmpdir}">
+			<fileset dir="./src" excludes="${javacexcludes},**/*.java"/>
+		</copy>
+		<jar destfile="${libdir}/${name}-${version}.jar">
+			<fileset dir="${tmpdir}"/>
+		</jar>
+		<delete dir="${tmpdir}"/>
+	</target>
+</project>

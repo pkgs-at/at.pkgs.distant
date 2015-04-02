@@ -1,0 +1,216 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: 'Dashboard',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4>Standby Servers</h4>
+<div class="refresh">
+  <p class="text-muted" style="margin-left:180px;">Now loading...</p>
+[@ BEGIN_CLIENT_TEMPLATE @]
+{% with ({
+	$servers: $model.children('StandbyServers').children('Server')
+}) { %}
+{% if ($servers.length <= 0) { %}
+  <p class="text-danger" style="margin-left:180px;"><strong>Not exist!</strong></p>
+{% } else { %}
+  <ul class="list-inline" style="margin-left:175px;">
+{% $servers.each(function () { %}
+    <li>{= $(this).attr('name') =}</li>
+{% }); %}
+  </ul>
+{% } %}
+{% }; %}
+[@ END_CLIENT_TEMPLATE @]
+</div>
+<h4>Projects</h4>
+<ul class="list-unstyled">
+[% Java.from($.site.projects).each(function(project) { %%]
+  <li data-project="[= project.name =]">
+    <dl class="dl-horizontal">
+      <dt>Project:</dt>
+      <dd>[= project.name =]</dd>
+      <dt>Targets:</dt>
+      <dd>
+        <ul class="list-inline">
+[% Java.from(project.build.targets).each(function(target) { %%]
+[% if (target.name == project.build.target) { %%]
+          <li data-target="[= target.name =]" data-default="true"><strong>[= target.name =]</strong></li>
+[% } else { %%]
+          <li data-target="[= target.name =]">[= target.name =]</li>
+[% } %%]
+[% }); %%]
+        </ul>
+      </dd>
+      <dt>Regions:</dt>
+      <dd>
+        <ul class="list-unstyled">
+[% Java.from(project.regions).each(function(region) { %%]
+          <li data-region="[= region.name =]" style="margin-top:6px;">
+            <button class="btn btn-primary btn-xs launch">[= region.name =]</button>
+            &nbsp;Servers:
+[% Java.from(region.servers).each(function(server) { %%]
+            &nbsp;<span data-server="[= server.name =]">[= server.name =]</span>
+[% }); %%]
+          </li>
+[% }); %%]
+        </ul>
+      </dd>
+    </dl>
+  </li>
+[% }); %%]
+</ul>
+<div class="modal fade launch_modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Launch Build</h4>
+        </div>
+        <div class="modal-body">
+[@ BEGIN_CLIENT_TEMPLATE @]
+          <dl class="dl-horizontal" style="margin:0px;">
+            <dt>Project:</dt>
+            <dd>
+              {= project =}
+              <input type="hidden" name="project" value="{= project =}" />
+            </dd>
+            <dt>Target:</dt>
+            <dd>
+              <select name="target">
+{% targets.each(function(target) { %}
+{% if (target == selected) { %}
+                <option value="{= target =}" selected="selected">{= target =}</option>
+{% } else { %}
+                <option value="{= target =}">{= target =}</option>
+{% } %}
+{% }); %}
+              </select>
+            </dd>
+            <dt>Region:</dt>
+            <dd>
+              {= region =}
+              <input type="hidden" name="region" value="{= region =}" />
+            </dd>
+            <dt>Servers:</dt>
+            <dd>
+              <ul class="list-inline">
+{% servers.each(function(server) { %}
+                <li>{= server =}</li>
+{% }); %}
+              </ul>
+            </dd>
+          </dl>
+[@ END_CLIENT_TEMPLATE @]
+        </div>
+        <div class="modal-footer">
+          <input type="hidden" name="token" />
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" name="action" value="build" class="btn btn-danger">Launch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function(root, unasigned) {
+	var $modal_body;
+	var _modal_body;
+	var $form;
+
+	$modal_body = $('.launch_modal .modal-body');
+	_modal_body = $modal_body.find('script[type="application/x-template"]').at().template();
+	$form = $('.launch_modal form');
+	$('.launch').click(function() {
+		var $button;
+		var $region;
+		var $project;
+		var servers;
+		var targets;
+
+		$button = $(this);
+		$region = $button.closest('*[data-region]');
+		$project = $region.closest('*[data-project]');
+		servers = new Array();
+		$region.find('*[data-server]').each(function() {
+			servers.push($(this).attr('data-server'));
+		});
+		targets = new Array();
+		$project.find('*[data-target]').each(function() {
+			targets.push($(this).attr('data-target'));
+		})
+		$modal_body.html(_modal_body({
+			project: $project.attr('data-project'),
+			region: $region.attr('data-region'),
+			servers: servers,
+			targets: targets,
+			selected: $project.find('*[data-target][data-default]').attr('data-target')
+		}));
+		$('.launch_modal').modal('show');
+	});
+	$form.submit(function() {
+		$.ajax({
+			async: false,
+			cache: false,
+			data: { action: 'token' },
+			dataType: 'text',
+			success: function(data) {
+				$form.find('input[name="token"]').val(data);
+			},
+			type: 'POST'
+		});
+		return true;
+	});
+})(this);
+</script>
+<h4>Launched</h4>
+
+<h4>Completed</h4>
+
+<!-- 
+<p>Authorization: [= $.request.getHeader('Authorization') =]</p>
+<p>Remote-User: [= $.user =]</p>
+<dl class="dl-horizontal">
+[% with ({ entry: null }) for each (entry in $.request.headerIterable) { %%]
+  <dt>[= entry.key ==]</dt>
+  <dd>[= entry.value ==]</dd>
+[% } %%]
+</dl>
+ -->
+<script>
+(function(root, unasigned) {
+	var contents;
+	var refresh;
+
+	contents = new Array();
+	$('.refresh').each(function() {
+		var $this;
+		var template;
+
+		$this = $(this);
+		template = $this.find('script[type="application/x-template"]').at().template();
+		contents.push(function($model) { $this.html(template({ $model: $model })); });
+	});
+	refresh = function() {
+		$.ajax({
+			async: true,
+			cache: false,
+			data: { action: 'refresh' },
+			dataType: 'xml',
+			success: function(data) {
+				var $model;
+
+				$model = $(data.documentElement);
+				contents.each(function(content) { content($model); });
+			},
+			type: 'GET'
+		});
+		root.setTimeout(refresh, 10000)
+	};
+	refresh();
+})(this);
+</script>
+[? } body_main ??]
+[% } %%]
