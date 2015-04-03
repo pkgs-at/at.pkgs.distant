@@ -48,7 +48,8 @@ public class LocalContext {
 
 	}
 
-	public static final String TEMPORARY_PREFIX = "at.pkgs.fatjar.";
+	public static final String TEMPORARY_PREFIX =
+			LocalContext.class.getPackage().getName() + ".";
 
 	public static final String LOCK_SUFFIX = ".lock";
 
@@ -171,7 +172,7 @@ public class LocalContext {
 		if (!root.mkdir())
 			throw new RuntimeException(
 					String.format(
-							"failed om create temporary root: %s",
+							"failed on create temporary root: %s",
 							root));
 		return root;
 	}

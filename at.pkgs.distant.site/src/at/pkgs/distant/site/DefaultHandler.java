@@ -133,17 +133,9 @@ public class DefaultHandler extends SiteHandler {
 				new File(
 						this.getSite().getData(),
 						"build." + build + ".zip"));
-		try {
-			Archive.Appender appender;
-
-			appender = archive.deflate();
-			try {
-				appender.append(upload);
-				appender.append("build.xml", project.getBuild().getFile());
-			}
-			finally {
-				appender.close();
-			}
+		try (Archive.Appender appender = archive.deflate()) {
+			appender.append(upload);
+			appender.append("build.xml", project.getBuild().getFile());
 		}
 		catch (IOException cause) {
 			throw new RuntimeException(cause);

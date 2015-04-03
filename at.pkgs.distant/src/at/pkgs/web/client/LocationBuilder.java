@@ -37,13 +37,13 @@ public class LocationBuilder {
 		public Mapper(String passthru) {
 			byte[] codes;
 
-			this.map = new String[128];
+			this.map = new String[256];
 			codes = passthru.getBytes();
 			for (int index = 0; index < passthru.length(); index ++) {
 				this.map[codes[index]] = Character
 						.toString(passthru.charAt(index));
 			}
-			for (int code = 0; code < 128; code ++) {
+			for (int code = 0; code < this.map.length; code ++) {
 				if (this.map[code] != null) continue;
 				this.map[code] = new StringBuilder()
 						.append('%')
