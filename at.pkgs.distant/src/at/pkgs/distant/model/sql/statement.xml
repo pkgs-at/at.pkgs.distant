@@ -57,6 +57,23 @@
 			WHERE
 				"build" = ?
 	]]></entry>
+	<entry key="build.list"><![CDATA[
+		SELECT ALL
+				"build",
+				"project",
+				"target",
+				"region",
+				"invoked",
+				"succeed",
+				"aborted",
+				"user",
+				"timestamp"
+			FROM
+				"t_build"
+			ORDER BY
+				"build" DESC
+			LIMIT ? OFFSET ?
+	]]></entry>
 	<entry key="build.set_count"><![CDATA[
 		UPDATE "t_build" AS B
 			SET
@@ -93,6 +110,20 @@
 				?,
 				0,
 				NULL)
+	]]></entry>
+	<entry key="build_server.get"><![CDATA[
+		SELECT ALL
+				"build",
+				"server",
+				"status",
+				"output",
+				"timestamp"
+			FROM
+				"t_build_server"
+			WHERE
+				"build" = ?
+			ORDER BY
+				"server" ASC
 	]]></entry>
 	<entry key="build_server.get_first_available"><![CDATA[
 		SELECT ALL

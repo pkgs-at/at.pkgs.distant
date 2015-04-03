@@ -24,8 +24,8 @@
 {% }; %}
 [@ END_CLIENT_TEMPLATE @]
 </div>
-<h4>Projects</h4>
-<ul class="list-unstyled">
+<h4><a href=".project_list" data-toggle="collapse">Projects...</a></h4>
+<ul class="collapse list-unstyled project_list">
 [% Java.from($.site.projects).each(function(project) { %%]
   <li data-project="[= project.name =]">
     <dl class="dl-horizontal">
@@ -64,7 +64,7 @@
 <div class="modal fade launch_modal">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="POST">
+      <form method="POST" target="_blank">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title">Launch Build</h4>
@@ -161,24 +161,69 @@
 			},
 			type: 'POST'
 		});
+		$('.launch_modal').modal('hide');
 		return true;
 	});
 })(this);
 </script>
-<h4>Launched</h4>
-
-<h4>Completed</h4>
-
-<!-- 
-<p>Authorization: [= $.request.getHeader('Authorization') =]</p>
-<p>Remote-User: [= $.user =]</p>
-<dl class="dl-horizontal">
-[% with ({ entry: null }) for each (entry in $.request.headerIterable) { %%]
-  <dt>[= entry.key ==]</dt>
-  <dd>[= entry.value ==]</dd>
-[% } %%]
-</dl>
- -->
+<h4>Recent Builds</h4>
+<div class="refresh build_list">
+  <p class="text-muted" style="margin-left:180px;">Now loading...</p>
+[@ BEGIN_CLIENT_TEMPLATE @]
+{% with ({
+	$builds: $model.children('Builds').children('Build')
+}) { %}
+{% if ($builds.length <= 0) { %}
+  <p class="text-danger" style="margin-left:180px;"><strong>Not exist!</strong></p>
+{% } else { %}
+  <div style="margin-left:180px;">
+    <table class="table table-hover table-condensed table-bordered">
+      <thead>
+        <tr class="active">
+          <th class="text-center">Build</th>
+          <th class="text-center">Project</th>
+          <th class="text-center">Target</th>
+          <th class="text-center">Region</th>
+          <th class="text-center">Invoked</th>
+          <th class="text-center">Succeed</th>
+          <th class="text-center">Aborted</th>
+          <th class="text-center">User</th>
+          <th class="text-center">Timestamp ({= Date.create().format('{isotz}') =})</th>
+        </tr>
+      </thead>
+      <tbody>
+{% $builds.each(function () { %}
+{% var $server = $(this); %}
+{% var build = $server.attr('build').toNumber(10); %}
+{% var invoked = $server.attr('invoked').toNumber(10); %}
+{% var succeed = $server.attr('succeed').toNumber(10); %}
+{% var aborted = $server.attr('aborted').toNumber(10); %}
+        <tr class="{= invoked > succeed + aborted ? 'warning' : (aborted ? 'danger' : 'success') =}" style="cursor:pointer;" data-href="build.htpl?build={= build =}">
+          <td class="text-center">{= build =}</td>
+          <td>{= $server.attr('project') =}</td>
+          <td>{= $server.attr('target') =}</td>
+          <td>{= $server.attr('region') =}</td>
+          <td class="text-right">{= invoked =}</td>
+          <td class="text-right">{= succeed =}</td>
+          <td class="text-right">{= aborted =}</td>
+          <td>{= $server.attr('user') =}</td>
+          <td class="text-center">{= Date.create($server.attr('timestamp').toNumber(10)).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}') =}</td>
+        </tr>
+{% }); %}
+      </tbody>
+    </table>
+  </div>
+{% } %}
+{% }; %}
+[@ END_CLIENT_TEMPLATE @]
+</div>
+<script>
+(function(root, unasigned) {
+	$('.build_list').on('click', 'table tbody tr[data-href]', function() {
+		root.window.open($(this).attr('data-href'));
+	});
+})(this);
+</script>
 <script>
 (function(root, unasigned) {
 	var contents;

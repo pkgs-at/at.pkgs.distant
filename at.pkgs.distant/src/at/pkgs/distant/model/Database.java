@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -290,6 +291,9 @@ public final class Database {
 		try {
 			PreparedStatement statement;
 
+			connection.setTransactionIsolation(
+					Connection.TRANSACTION_SERIALIZABLE);
+			connection.setAutoCommit(false);
 			statement = this.prepare(
 					connection,
 					"build.new");
@@ -367,6 +371,44 @@ public final class Database {
 		}
 	}
 
+	public List<Build> listBuild(int limit, int offset) {
+		Connection connection;
+
+		connection = this.connection();
+		try {
+			PreparedStatement statement;
+			List<Build> list;
+			ResultSet result;
+
+			statement = this.prepare(
+					connection,
+					"build.list");
+			statement.setInt(1, limit);
+			statement.setInt(2, offset);
+			list = new ArrayList<Build>();
+			result = statement.executeQuery();
+			while (result.next())
+				list.add(
+						new Build(
+								result.getString(1),
+								result.getString(2),
+								result.getString(3),
+								result.getString(4),
+								result.getInt(5),
+								result.getInt(6),
+								result.getInt(7),
+								result.getString(8),
+								result.getTimestamp(9)));
+			return list;
+		}
+		catch (SQLException cause) {
+			throw new RuntimeException(cause);
+		}
+		finally {
+			this.close(connection);
+		}
+	}
+
 	public Build getFirstAvailableBuild(
 			String server) {
 		Connection connection;
@@ -403,6 +445,39 @@ public final class Database {
 		}
 		finally {
 			if (statement != null) statement.close();
+		}
+	}
+
+	public List<BuildServer> getBuildServer(String build) {
+		Connection connection;
+
+		connection = this.connection();
+		try {
+			PreparedStatement statement;
+			List<BuildServer> list;
+			ResultSet result;
+
+			statement = this.prepare(
+					connection,
+					"build_server.get");
+			statement.setString(1, build);
+			list = new ArrayList<BuildServer>();
+			result = statement.executeQuery();
+			while (result.next())
+				list.add(
+						new BuildServer(
+								result.getString(1),
+								result.getString(2),
+								result.getInt(3),
+								result.getString(4),
+								result.getTimestamp(5)));
+			return list;
+		}
+		catch (SQLException cause) {
+			throw new RuntimeException(cause);
+		}
+		finally {
+			this.close(connection);
 		}
 	}
 
@@ -502,21 +577,21 @@ public final class Database {
 	public static void shutdown() {
 		if (Database.instance == null) return;
 		try {
-			synchronized (Database.class) {
-				Database instance;
-				Statement statement;
+			Database instance;
+			Statement statement;
 
+			synchronized (Database.class) {
 				instance = Database.instance;
 				Database.instance = null;
-				if (instance == null) return;
-				statement = null;
-				try {
-					statement = instance.connection.createStatement();
-					statement.execute("SHUTDOWN DEFRAG");
-				}
-				finally {
-					if (statement != null) statement.close();
-				}
+			}
+			if (instance == null) return;
+			statement = null;
+			try {
+				statement = instance.connection.createStatement();
+				statement.execute("SHUTDOWN DEFRAG");
+			}
+			finally {
+				if (statement != null) statement.close();
 			}
 		}
 		catch (SQLException cause) {

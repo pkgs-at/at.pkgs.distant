@@ -18,7 +18,12 @@
 package at.pkgs.distant.model;
 
 import java.sql.Timestamp;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+@XmlAccessorType(XmlAccessType.NONE)
 public class Build {
 
 	private final String build;
@@ -60,38 +65,48 @@ public class Build {
 		this.timestamp = timestamp;
 	}
 
+	@XmlAttribute(name = "build")
 	public String getBuild() {
 		return this.build;
 	}
 
+	@XmlAttribute(name = "project")
 	public String getProject() {
 		return this.project;
 	}
 
+	@XmlAttribute(name = "target")
 	public String getTarget() {
 		return this.target;
 	}
 
+	@XmlAttribute(name = "region")
 	public String getRegion() {
 		return this.region;
 	}
 
+	@XmlAttribute(name = "invoked")
 	public int getInvoked() {
 		return this.invoked;
 	}
 
+	@XmlAttribute(name = "succeed")
 	public int getSucceed() {
 		return this.succeed;
 	}
 
+	@XmlAttribute(name = "aborted")
 	public int getAborted() {
 		return this.aborted;
 	}
 
+	@XmlAttribute(name = "user")
 	public String getUser() {
 		return this.user;
 	}
 
+	@XmlAttribute(name = "timestamp")
+	@XmlJavaTypeAdapter(Models.TimestampAdapter.class)
 	public Timestamp getTimestamp() {
 		return this.timestamp;
 	}

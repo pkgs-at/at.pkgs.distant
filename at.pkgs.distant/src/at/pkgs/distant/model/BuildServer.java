@@ -18,7 +18,13 @@
 package at.pkgs.distant.model;
 
 import java.sql.Timestamp;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+@XmlAccessorType(XmlAccessType.NONE)
 public class BuildServer {
 
 	private final String build;
@@ -44,22 +50,28 @@ public class BuildServer {
 		this.timestamp = timestamp;
 	}
 
+	@XmlAttribute(name = "build")
 	public String getBuild() {
 		return this.build;
 	}
 
+	@XmlAttribute(name = "server")
 	public String getServer() {
 		return this.server;
 	}
 
+	@XmlAttribute(name = "status")
 	public int getStatus() {
 		return this.status;
 	}
 
+	@XmlElement(name = "Output")
 	public String getOutput() {
 		return this.output;
 	}
 
+	@XmlAttribute(name = "timestamp")
+	@XmlJavaTypeAdapter(Models.TimestampAdapter.class)
 	public Timestamp getTimestamp() {
 		return this.timestamp;
 	}

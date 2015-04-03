@@ -29,9 +29,11 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
+import at.pkgs.web.client.LocationBuilder;
 import at.pkgs.distant.Archive;
 import at.pkgs.distant.model.Site;
 import at.pkgs.distant.model.Database;
+import at.pkgs.distant.model.Build;
 
 public class DefaultHandler extends SiteHandler {
 
@@ -45,6 +47,8 @@ public class DefaultHandler extends SiteHandler {
 	public static class Model {
 
 		private List<Site.Server> standbyServers;
+
+		private List<Build> builds;
 
 		@XmlElementWrapper(name = "StandbyServers")
 		@XmlElement(name = "Server")
@@ -70,6 +74,15 @@ public class DefaultHandler extends SiteHandler {
 			this.addStandbyServer(value);
 		}
 
+		@XmlElementWrapper(name = "Builds")
+		@XmlElement(name = "Build")
+		public List<Build> getBuilds() {
+			return this.builds;
+		}
+
+		public void setBuilds(List<Build> value) {
+			this.builds = value;
+		}
 	}
 
 	protected Model model() {
@@ -78,10 +91,11 @@ public class DefaultHandler extends SiteHandler {
 		model = new Model();
 		for (String name : ControlServlet.getServers())
 			model.addStandbyServer(name);
+		model.setBuilds(Database.get().listBuild(20, 0));
 		return model;
 	}
 
-	protected boolean build() {
+	protected String build() {
 		Site.Project project;
 		Site.Target target;
 		Site.Region region;
@@ -92,7 +106,7 @@ public class DefaultHandler extends SiteHandler {
 
 		if (!this.validateToken("token")) {
 			this.addErrorMessage("Token missmatch");
-			return false;
+			return null;
 		}
 		project = this.getSite().getProject(
 				this.getRequest().getParameter("project"));
@@ -100,7 +114,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown project: %s",
 					this.getRequest().getParameter("project"));
-			return false;
+			return null;
 		}
 		target = project.getBuild().getTarget(
 				this.getRequest().getParameter("target"));
@@ -108,7 +122,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown target: %s",
 					this.getRequest().getParameter("target"));
-			return false;
+			return null;
 		}
 		region = project.getRegion(
 				this.getRequest().getParameter("region"));
@@ -116,7 +130,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown region: %s",
 					this.getRequest().getParameter("region"));
-			return false;
+			return null;
 		}
 		servers = new ArrayList<String>();
 		for (Site.Server server : region.getServers())
@@ -126,7 +140,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Upload directory not found: %s",
 					upload);
-			return false;
+			return null;
 		}
 		build = Database.get().getBuildIdentity();
 		archive = new Archive(
@@ -149,12 +163,13 @@ public class DefaultHandler extends SiteHandler {
 				this.getUser());
 		ControlServlet.interrupt();
 		this.addSuccessMessage("New build: %s", build);
-		return true;
+		return build;
 	}
 
 	@Override
 	protected void handle() throws ServletException, IOException {
 		String action;
+		String build;
 
 		action = this.getRequest().getParameter("action");
 		if (action == null) action = "default";
@@ -168,10 +183,13 @@ public class DefaultHandler extends SiteHandler {
 			this.finish();
 			return;
 		case "build" :
-			if (this.build()) {
-				// TODO redirect
+			build = this.build();
+			if (build != null) {
+				this.getResponse().sendRedirect(
+						new LocationBuilder("build.htpl")
+								.query("build", build)
+								.toString());
 				this.finish();
-				return;
 			}
 			return;
 		}

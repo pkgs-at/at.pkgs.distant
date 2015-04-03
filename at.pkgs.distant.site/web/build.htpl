@@ -1,0 +1,93 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: 'Build: ' + $.build.build,
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4>Build Information</h4>
+<dl class="dl-horizontal">
+  <dt>Project:</dt>
+  <dd>[= $.build.project =]</dd>
+  <dt>Target:</dt>
+  <dd>[= $.build.target =]</dd>
+  <dt>Region:</dt>
+  <dd>[= $.build.region =]</dd>
+  <dt class="text-info">Invoked:</dt>
+  <dd class="text-info">[= $.build.invoked =]</dd>
+  <dt class="text-success">Succeed:</dt>
+  <dd class="text-success">[= $.build.succeed =]</dd>
+  <dt class="text-danger">Aborted:</dt>
+  <dd class="text-danger">[= $.build.aborted =]</dd>
+  <dt>Timestamp:</dt>
+  <dd>[= Date.create($.build.timestamp.time).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =]</dd>
+</dl>
+<div class="refresh build_list">
+  <p class="text-muted" style="margin-left:180px;">Now loading...</p>
+[@ BEGIN_CLIENT_TEMPLATE @]
+{% with ({
+	$servers: $model.children('BuildServers').children('BuildServer')
+}) { %}
+{% if ($servers.length <= 0) { %}
+  <p class="text-danger" style="margin-left:180px;"><strong>Not exist!</strong></p>
+{% } else { %}
+{% $servers.each(function () { %}
+{% var $server = $(this); %}
+{% var status = parseInt($server.attr('status')); %}
+{% var output = $server.children('Output').text(); %}
+  <h4 class="text-{=  status ? 'danger' : (output ? 'success' : 'warning') =}">{= $server.attr('server') =}</h4>
+{% if (!output) { %}
+  <p class="text-warning" style="margin-left:180px;">Not completed...</p>
+{% } else { %}
+  <dl class="dl-horizontal">
+    <dt>Status:</dt>
+    <dd>{= status =}</dd>
+    <dt>Output:</dt>
+    <dd>
+      <a href="#server_{= $server.attr('server') =}_output" data-toggle="collapse">show...</a>
+      <pre class="pre-scrollable collapse" id="server_{= $server.attr('server') =}_output">{= output =}</pre>
+    </dd>
+    <dt>Timestamp:</dt>
+    <dd>{= Date.create($server.attr('timestamp').toNumber(10)).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =}</dd>
+  </dl>
+{% } %}
+{% }); %}
+{% } %}
+{% }; %}
+[@ END_CLIENT_TEMPLATE @]
+</div>
+<script>
+(function(root, unasigned) {
+	var contents;
+	var refresh;
+
+	contents = new Array();
+	$('.refresh').each(function() {
+		var $this;
+		var template;
+
+		$this = $(this);
+		template = $this.find('script[type="application/x-template"]').at().template();
+		contents.push(function($model) { $this.html(template({ $model: $model })); });
+	});
+	refresh = function() {
+		$.ajax({
+			async: true,
+			cache: false,
+			data: { action: 'refresh' },
+			dataType: 'xml',
+			success: function(data) {
+				var $model;
+
+				$model = $(data.documentElement);
+				contents.each(function(content) { content($model); });
+			},
+			type: 'GET'
+		});
+//		root.setTimeout(refresh, 10000)
+	};
+	refresh();
+})(this);
+</script>
+[? } body_main ??]
+[% } %%]
