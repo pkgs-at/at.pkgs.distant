@@ -249,10 +249,13 @@
 
 				$model = $(data.documentElement);
 				contents.each(function(content) { content($model); });
+				root.setTimeout(refresh, 2000);
+			},
+			error: function(data) {
+				alert('Please reload this page (network error).');
 			},
 			type: 'GET'
 		});
-		root.setTimeout(refresh, 10000)
 	};
 	refresh();
 })(this);

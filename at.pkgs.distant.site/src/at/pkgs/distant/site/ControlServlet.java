@@ -93,7 +93,9 @@ public class ControlServlet extends ServiceServlet {
 				this.command(
 						ControlCommand.EXECUTE,
 						build.getBuild(),
+						/* FOR DEBUG *
 						"-d",
+						/* END DEBUG */
 						"-Ddistant.build=" + build.getBuild(),
 						"-Ddistant.project=" + build.getProject(),
 						"-Ddistant.target=" + build.getTarget(),

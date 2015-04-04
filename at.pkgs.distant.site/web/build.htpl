@@ -97,6 +97,9 @@
 				contents = alive;
 				if (contents.length > 0) root.setTimeout(refresh, 1000);
 			},
+			error: function(data) {
+				alert('Please reload this page (network error).');
+			},
 			type: 'GET'
 		});
 	};
