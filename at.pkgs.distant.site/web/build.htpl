@@ -22,19 +22,15 @@
   <dt>Timestamp:</dt>
   <dd>[= Date.create($.build.timestamp.time).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =]</dd>
 </dl>
-<div class="refresh build_list">
+[% Java.from($.buildServers).each(function(server) { %%]
+<div class="refresh" data-server="[= server.server =]">
+  <h4 class="text-muted" style="margin-left:180px;">[= server.server =]</h4>
   <p class="text-muted" style="margin-left:180px;">Now loading...</p>
 [@ BEGIN_CLIENT_TEMPLATE @]
 {% with ({
-	$servers: $model.children('BuildServers').children('BuildServer')
+	status: parseInt($server.attr('status')),
+	output: $server.children('Output').text()
 }) { %}
-{% if ($servers.length <= 0) { %}
-  <p class="text-danger" style="margin-left:180px;"><strong>Not exist!</strong></p>
-{% } else { %}
-{% $servers.each(function () { %}
-{% var $server = $(this); %}
-{% var status = parseInt($server.attr('status')); %}
-{% var output = $server.children('Output').text(); %}
   <h4 class="text-{=  status ? 'danger' : (output ? 'success' : 'warning') =}">{= $server.attr('server') =}</h4>
 {% if (!output) { %}
   <p class="text-warning" style="margin-left:180px;">Not completed...</p>
@@ -51,11 +47,10 @@
     <dd>{= Date.create($server.attr('timestamp').toNumber(10)).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =}</dd>
   </dl>
 {% } %}
-{% }); %}
-{% } %}
 {% }; %}
 [@ END_CLIENT_TEMPLATE @]
 </div>
+[% }); %%]
 <script>
 (function(root, unasigned) {
 	var contents;
@@ -64,11 +59,25 @@
 	contents = new Array();
 	$('.refresh').each(function() {
 		var $this;
+		var server;
 		var template;
 
 		$this = $(this);
+		server = $this.attr('data-server');
 		template = $this.find('script[type="application/x-template"]').at().template();
-		contents.push(function($model) { $this.html(template({ $model: $model })); });
+		contents.push(function($model) {
+			var $server;
+
+			if (server == null) {
+				$this.html(template({ $model: $model }));
+				return parseInt($model.attr('invoked')) > parseInt($model.attr('succeed')) + parseInt($model.attr('aborted'));
+			}
+			else {
+				$server = $model.children('BuildServers').children('BuildServer[server="' + server + '"]');
+				$this.html(template({ $server: $server }));
+				return $server.children('Output').length < 1;
+			}
+		});
 	});
 	refresh = function() {
 		$.ajax({
@@ -78,13 +87,18 @@
 			dataType: 'xml',
 			success: function(data) {
 				var $model;
+				var alive;
 
 				$model = $(data.documentElement);
-				contents.each(function(content) { content($model); });
+				alive = new Array();
+				contents.each(function(content) { 
+					if (content($model)) alive.push(content);
+				});
+				contents = alive;
+				if (contents.length > 0) root.setTimeout(refresh, 1000);
 			},
 			type: 'GET'
 		});
-//		root.setTimeout(refresh, 10000)
 	};
 	refresh();
 })(this);

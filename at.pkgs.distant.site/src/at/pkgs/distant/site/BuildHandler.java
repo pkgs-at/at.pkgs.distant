@@ -58,6 +58,8 @@ public class BuildHandler extends SiteHandler {
 
 	private Build build;
 
+	private List<BuildServer> buildServers;
+
 	public Build getBuild() {
 		if (this.build == null) {
 			this.build = Database.get().getBuild(
@@ -66,12 +68,19 @@ public class BuildHandler extends SiteHandler {
 		return this.build;
 	}
 
+	public List<BuildServer> getBuildServers() {
+		if (this.buildServers == null) {
+			this.buildServers = Database.get().getBuildServer(
+					this.getRequest().getParameter("build"));
+		}
+		return this.buildServers;
+	}
+
 	protected Model model() {
 		Model model;
 
 		model = new Model();
-		model.setBuildServers(Database.get().getBuildServer(
-				this.getBuild().getBuild()));
+		model.setBuildServers(this.getBuildServers());
 		return model;
 	}
 
