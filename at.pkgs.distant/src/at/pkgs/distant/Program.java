@@ -129,7 +129,7 @@ public class Program implements Runnable {
 	}
 
 	public void upload(
-			String build,
+			String name,
 			int status,
 			String output)
 					throws IOException {
@@ -142,7 +142,7 @@ public class Program implements Runnable {
 			connection = Connections.openHttpURLConnection(
 					new LocationBuilder(this.base)
 							.path("build")
-							.path(build)
+							.path(name)
 							.path(this.server)
 							.query("status", Integer.toString(status, 10))
 							.toString());
@@ -194,7 +194,7 @@ public class Program implements Runnable {
 	}
 
 	public void execute(
-			String build,
+			String name,
 			String[] arguments)
 					throws IOException {
 		File downloaded;
@@ -204,10 +204,10 @@ public class Program implements Runnable {
 		String[] parameters;
 		int status;
 
-		downloaded = new File("build." + build + ".zip");
+		downloaded = new File("build." + name + ".zip");
 		this.delete(downloaded);
-		this.download(build, downloaded);
-		directory = new File("build." + build);
+		this.download(name, downloaded);
+		directory = new File("build." + name);
 		this.delete(directory);
 		new Archive(downloaded).inflate(directory);
 		this.delete(downloaded);
@@ -217,14 +217,14 @@ public class Program implements Runnable {
 		System.arraycopy(arguments, 0, parameters, 2, arguments.length);
 		buffer = new ByteArrayOutputStream();
 		console = new PrintStream(buffer, false, "UTF-8");
-		console.append("launch ant for ").append(build).println();
+		console.append("launch ant for build: ").append(name).println();
 		for (String parameter : parameters)
 			console.append(' ').append(parameter);
 		console.println();
 		status = this.build(console, parameters);
 		if (status == 0) this.delete(directory);
 		console.flush();
-		this.upload(build, status, buffer.toString("UTF-8"));
+		this.upload(name, status, buffer.toString("UTF-8"));
 	}
 
 	public void poll() throws IOException {
