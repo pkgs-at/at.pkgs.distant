@@ -1,15 +1,15 @@
 
 INSERT
 	INTO "t_preference"(
-		"key",
+		"name",
 		"value")
 	VALUES(
-		'build.identity',
+		'build.name',
 		'000000000000');
 
 INSERT
 	INTO "t_preference"(
-		"key",
+		"name",
 		"value")
 	VALUES(
 		'database.version',

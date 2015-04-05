@@ -152,7 +152,7 @@ public final class Database {
 
 	private String getPreference(
 			Connection connection,
-			String key,
+			String name,
 			String alternative)
 					throws SQLException {
 		PreparedStatement statement;
@@ -165,7 +165,7 @@ public final class Database {
 			statement = this.prepare(
 					connection,
 					"preference.get");
-			statement.setString(1, key);
+			statement.setString(1, name);
 			result = statement.executeQuery();
 			if (!result.next()) return alternative;
 			value = result.getString(1);
@@ -178,19 +178,19 @@ public final class Database {
 
 	private String getPreference(
 			Connection connection,
-			String key)
+			String name)
 					throws SQLException {
-		return this.getPreference(connection, key, null);
+		return this.getPreference(connection, name, null);
 	}
 
 	public String getPreference(
-			String key,
+			String name,
 			String alternative) {
 		Connection connection;
 
 		connection = this.connection();
 		try {
-			return this.getPreference(connection, key, alternative);
+			return this.getPreference(connection, name, alternative);
 		}
 		catch (SQLException cause) {
 			throw new RuntimeException(cause);
@@ -207,7 +207,7 @@ public final class Database {
 
 	private void setPreference(
 			Connection connection,
-			String key,
+			String name,
 			String value)
 					throws SQLException {
 		PreparedStatement statement;
@@ -217,7 +217,7 @@ public final class Database {
 			statement = this.prepare(
 					connection,
 					"preference.set");
-			statement.setString(1, key);
+			statement.setString(1, name);
 			statement.setString(2, value);
 			statement.executeUpdate();
 		}
@@ -226,12 +226,12 @@ public final class Database {
 		}
 	}
 
-	public void setPreference(String key, String value) {
+	public void setPreference(String name, String value) {
 		Connection connection;
 
 		connection = this.connection();
 		try {
-			this.setPreference(connection, key, value);
+			this.setPreference(connection, name, value);
 		}
 		catch (SQLException cause) {
 			throw new RuntimeException(cause);
@@ -241,14 +241,14 @@ public final class Database {
 		}
 	}
 
-	public String getBuildIdentity() {
+	public String getBuildName() {
 		Connection connection;
 
 		connection = this.connection();
 		try {
 			long current;
 			long first;
-			String value;
+			String name;
 
 			connection.setTransactionIsolation(
 					Connection.TRANSACTION_SERIALIZABLE);
@@ -256,19 +256,19 @@ public final class Database {
 			current = Long.parseLong(
 					this.getPreference(
 							connection,
-							"build.identity"),
+							"build.name"),
 					10);
 			first = Long.parseLong(
 					String.format(
 							"%1$tY%1$tm%1$td0001",
 							new Date(System.currentTimeMillis())),
 					10);
-			value = String.format(
+			name = String.format(
 					"%012d",
 					Math.max(current + 1, first));
-			this.setPreference(connection, "build.identity", value);
+			this.setPreference(connection, "build.name", name);
 			connection.commit();
-			return value;
+			return name;
 		}
 		catch (SQLException cause) {
 			throw new RuntimeException(cause);
@@ -279,12 +279,13 @@ public final class Database {
 	}
 
 	public void newBuild(
-			String build,
+			String name,
 			String project,
 			String target,
 			String region,
 			List<String> servers,
-			String user) {
+			String user,
+			String comment) {
 		Connection connection;
 
 		connection = this.connection();
@@ -297,19 +298,20 @@ public final class Database {
 			statement = this.prepare(
 					connection,
 					"build.new");
-			statement.setString(1, build);
+			statement.setString(1, name);
 			statement.setString(2, project);
 			statement.setString(3, target);
 			statement.setString(4, region);
 			statement.setInt(5, servers.size());
 			statement.setString(6, user);
+			statement.setString(7, comment);
 			statement.executeUpdate();
 			statement = this.prepare(
 					connection,
 					"build_server.new");
 			for (String server : servers) {
 				statement.clearParameters();
-				statement.setString(1, build);
+				statement.setString(1, name);
 				statement.setString(2, server);
 				statement.executeUpdate();
 			}
@@ -325,7 +327,7 @@ public final class Database {
 
 	private Build getBuild(
 			Connection connection,
-			String build)
+			String name)
 					throws SQLException {
 		PreparedStatement statement;
 
@@ -336,7 +338,7 @@ public final class Database {
 			statement = this.prepare(
 					connection,
 					"build.get");
-			statement.setString(1, build);
+			statement.setString(1, name);
 			result = statement.executeQuery();
 			if (!result.next()) return null;
 			return new Build(
@@ -347,8 +349,10 @@ public final class Database {
 					result.getInt(5),
 					result.getInt(6),
 					result.getInt(7),
-					result.getString(8),
-					result.getTimestamp(9));
+					result.getBoolean(8),
+					result.getString(9),
+					result.getString(10),
+					result.getTimestamp(11));
 		}
 		finally {
 			if (statement != null) statement.close();
@@ -356,12 +360,12 @@ public final class Database {
 	}
 
 	public Build getBuild(
-			String build) {
+			String name) {
 		Connection connection;
 
 		connection = this.connection();
 		try {
-			return this.getBuild(connection, build);
+			return this.getBuild(connection, name);
 		}
 		catch (SQLException cause) {
 			throw new RuntimeException(cause);
@@ -397,29 +401,11 @@ public final class Database {
 								result.getInt(5),
 								result.getInt(6),
 								result.getInt(7),
-								result.getString(8),
-								result.getTimestamp(9)));
+								result.getBoolean(8),
+								result.getString(9),
+								result.getString(10),
+								result.getTimestamp(11)));
 			return list;
-		}
-		catch (SQLException cause) {
-			throw new RuntimeException(cause);
-		}
-		finally {
-			this.close(connection);
-		}
-	}
-
-	public Build getFirstAvailableBuild(
-			String server) {
-		Connection connection;
-
-		connection = this.connection();
-		try {
-			BuildServer job;
-
-			job = this.getFirstAvailableBuildServer(connection, server);
-			if (job == null) return null;
-			return this.getBuild(connection, job.getBuild());
 		}
 		catch (SQLException cause) {
 			throw new RuntimeException(cause);
@@ -431,7 +417,7 @@ public final class Database {
 
 	private void setCountBuild(
 			Connection connection,
-			String build)
+			String name)
 					throws SQLException {
 		PreparedStatement statement;
 
@@ -440,7 +426,7 @@ public final class Database {
 			statement = this.prepare(
 					connection,
 					"build.set_count");
-			statement.setString(1, build);
+			statement.setString(1, name);
 			statement.executeUpdate();
 		}
 		finally {
@@ -448,7 +434,26 @@ public final class Database {
 		}
 	}
 
-	public List<BuildServer> getBuildServer(String build) {
+	private boolean setCompletedBuild(
+			Connection connection,
+			String name)
+					throws SQLException {
+		PreparedStatement statement;
+
+		statement = null;
+		try {
+			statement = this.prepare(
+					connection,
+					"build.set_completed");
+			statement.setString(1, name);
+			return statement.executeUpdate() > 0;
+		}
+		finally {
+			if (statement != null) statement.close();
+		}
+	}
+
+	public List<BuildServer> getBuildServers(String build) {
 		Connection connection;
 
 		connection = this.connection();
@@ -483,7 +488,7 @@ public final class Database {
 
 	private BuildServer getFirstAvailableBuildServer(
 			Connection connection,
-			String server)
+			String name)
 					throws SQLException {
 		PreparedStatement statement;
 
@@ -494,7 +499,7 @@ public final class Database {
 			statement = this.prepare(
 					connection,
 					"build_server.get_first_available");
-			statement.setString(1, server);
+			statement.setString(1, name);
 			result = statement.executeQuery();
 			if (!result.next()) return null;
 			return new BuildServer(
@@ -512,10 +517,26 @@ public final class Database {
 		}
 	}
 
-	private void setResultBuildServer(
+	public BuildServer getFirstAvailableBuildServer(
+			String name) {
+		Connection connection;
+
+		connection = this.connection();
+		try {
+			return this.getFirstAvailableBuildServer(connection, name);
+		}
+		catch (SQLException cause) {
+			throw new RuntimeException(cause);
+		}
+		finally {
+			this.close(connection);
+		}
+	}
+
+	private boolean setResultBuildServer(
 			Connection connection,
 			String build,
-			String server,
+			String name,
 			int status,
 			String output)
 					throws SQLException {
@@ -529,28 +550,29 @@ public final class Database {
 			statement.setInt(1, status);
 			statement.setString(2, output);
 			statement.setString(3, build);
-			statement.setString(4, server);
+			statement.setString(4, name);
 			statement.executeUpdate();
 		}
 		finally {
 			if (statement != null) statement.close();
 		}
 		this.setCountBuild(connection, build);
+		return this.setCompletedBuild(connection, build);
 	}
 
-	public void setResultBuildServer(
+	public boolean setResultBuildServer(
 			String build,
-			String server,
+			String name,
 			int status,
 			String output) {
 		Connection connection;
 
 		connection = this.connection();
 		try {
-			this.setResultBuildServer(
+			return this.setResultBuildServer(
 					connection,
 					build,
-					server,
+					name,
 					status,
 					output);
 		}

@@ -35,6 +35,7 @@ import at.pkgs.distant.ControlCommand;
 import at.pkgs.distant.model.Site;
 import at.pkgs.distant.model.Database;
 import at.pkgs.distant.model.Build;
+import at.pkgs.distant.model.BuildServer;
 
 @WebServlet(
 		name = "ControlServlet",
@@ -48,7 +49,7 @@ public class ControlServlet extends ServiceServlet {
 	protected void doPollGet(
 			HttpRequest request,
 			HttpResponse response,
-			final String server)
+			final String name)
 					throws ServletException, IOException {
 		final PrintWriter writer;
 
@@ -86,10 +87,12 @@ public class ControlServlet extends ServiceServlet {
 			}
 
 			private boolean poll() {
+				BuildServer server;
 				Build build;
 
-				build = Database.get().getFirstAvailableBuild(server);
-				if (build == null) return false;
+				server = Database.get().getFirstAvailableBuildServer(name);
+				if (server == null) return false;
+				build = Database.get().getBuild(server.getBuild());
 				this.command(
 						ControlCommand.EXECUTE,
 						build.getBuild(),
@@ -100,7 +103,7 @@ public class ControlServlet extends ServiceServlet {
 						"-Ddistant.project=" + build.getProject(),
 						"-Ddistant.target=" + build.getTarget(),
 						"-Ddistant.region=" + build.getRegion(),
-						"-Ddistant.server=" + server,
+						"-Ddistant.server=" + server.getName(),
 						build.getTarget());
 				return true;
 			}
@@ -110,7 +113,7 @@ public class ControlServlet extends ServiceServlet {
 				try {
 					int count;
 
-					ControlServlet.register(server, this);
+					ControlServlet.register(name, this);
 					count = 0;
 					while (count < 360) {
 						if (this.poll()) break;
@@ -125,7 +128,7 @@ public class ControlServlet extends ServiceServlet {
 					}
 				}
 				finally {
-					ControlServlet.unregister(server, this);
+					ControlServlet.unregister(name, this);
 				}
 			}
 
@@ -136,17 +139,17 @@ public class ControlServlet extends ServiceServlet {
 	protected void doBuildGet(
 			HttpRequest request,
 			HttpResponse response,
-			String build)
+			String name)
 					throws ServletException, IOException {
 		File file;
 
-		if (Database.get().getBuild(build) == null) {
+		if (Database.get().getBuild(name) == null) {
 			response.sendError(HttpResponse.SC_NOT_FOUND);
 			return;
 		}
 		file = new File(
 				Site.load().getData(),
-				"build." + build + ".zip");
+				"build." + name + ".zip");
 		if (!file.exists() || !file.isFile()) {
 			response.sendError(HttpResponse.SC_NOT_FOUND);
 			return;
@@ -158,13 +161,14 @@ public class ControlServlet extends ServiceServlet {
 	protected void doBuildPost(
 			HttpRequest request,
 			HttpResponse response,
-			String build,
+			String name,
 			String server)
 					throws ServletException, IOException {
 		int status;
 		StringBuilder output;
+		boolean completed;
 
-		if (Database.get().getBuild(build) == null) {
+		if (Database.get().getBuild(name) == null) {
 			response.sendError(HttpResponse.SC_NOT_FOUND);
 			return;
 		}
@@ -182,11 +186,13 @@ public class ControlServlet extends ServiceServlet {
 			while ((line = reader.readLine()) != null)
 				output.append(line).append('\n');
 		}
-		Database.get().setResultBuildServer(
-				build,
+		completed = Database.get().setResultBuildServer(
+				name,
 				server,
 				status,
 				output.toString());
+		if (!completed) return;
+		// TODO mail
 	}
 
 	@Path(methods = { "GET" }, pattern = "^/bundled/([^/]+)$")

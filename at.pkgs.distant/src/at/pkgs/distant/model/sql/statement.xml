@@ -7,15 +7,15 @@
 			FROM
 				"t_preference"
 			WHERE
-				"key" = ?
+				"name" = ?
 	]]></entry>
 	<entry key="preference.set"><![CDATA[
 		MERGE
 			INTO "t_preference"(
-				"key",
+				"name",
 				"value")
 			KEY(
-				"key")
+				"name")
 			VALUES(
 				?,
 				?)
@@ -23,14 +23,16 @@
 	<entry key="build.new"><![CDATA[
 		INSERT
 			INTO "t_build"(
-				"build",
+				"name",
 				"project",
 				"target",
 				"region",
 				"invoked",
 				"succeed",
 				"aborted",
-				"user")
+				"completed",
+				"user",
+				"comment")
 			VALUES(
 				?,
 				?,
@@ -39,39 +41,45 @@
 				?,
 				0,
 				0,
+				FALSE,
+				?,
 				?)
 	]]></entry>
 	<entry key="build.get"><![CDATA[
 		SELECT ALL
-				"build",
+				"name",
 				"project",
 				"target",
 				"region",
 				"invoked",
 				"succeed",
 				"aborted",
+				"completed",
 				"user",
+				"comment",
 				"timestamp"
 			FROM
 				"t_build"
 			WHERE
-				"build" = ?
+				"name" = ?
 	]]></entry>
 	<entry key="build.list"><![CDATA[
 		SELECT ALL
-				"build",
+				"name",
 				"project",
 				"target",
 				"region",
 				"invoked",
 				"succeed",
 				"aborted",
+				"completed",
 				"user",
+				"comment",
 				"timestamp"
 			FROM
 				"t_build"
 			ORDER BY
-				"build" DESC
+				"name" DESC
 			LIMIT ? OFFSET ?
 	]]></entry>
 	<entry key="build.set_count"><![CDATA[
@@ -83,7 +91,7 @@
 						FROM
 							"t_build_server" AS S
 						WHERE
-							S."build" = B."build" AND
+							S."build" = B."name" AND
 							S."output" IS NOT NULL AND
 							S."status" = 0),
 				"aborted" = (
@@ -92,17 +100,26 @@
 						FROM
 							"t_build_server" AS A
 						WHERE
-							A."build" = B."build" AND
+							A."build" = B."name" AND
 							A."output" IS NOT NULL AND
 							A."status" <> 0)
 			WHERE
-				B."build" = ?
+				B."name" = ?
+	]]></entry>
+	<entry key="build.set_completed"><![CDATA[
+		UPDATE "t_build"
+			SET
+				"completed" = TRUE
+			WHERE
+				"name" = ? AND
+				"invoked" = "succeed" + "aborted" AND
+				"completed" = FALSE
 	]]></entry>
 	<entry key="build_server.new"><![CDATA[
 		INSERT
 			INTO "t_build_server"(
 				"build",
-				"server",
+				"name",
 				"status",
 				"output")
 			VALUES(
@@ -114,7 +131,7 @@
 	<entry key="build_server.get"><![CDATA[
 		SELECT ALL
 				"build",
-				"server",
+				"name",
 				"status",
 				"output",
 				"timestamp"
@@ -123,19 +140,19 @@
 			WHERE
 				"build" = ?
 			ORDER BY
-				"server" ASC
+				"name" ASC
 	]]></entry>
 	<entry key="build_server.get_first_available"><![CDATA[
 		SELECT ALL
 				"build",
-				"server",
+				"name",
 				"status",
 				"output",
 				"timestamp"
 			FROM
 				"t_build_server"
 			WHERE
-				"server" = ? AND
+				"name" = ? AND
 				"output" IS NULL
 			ORDER BY
 				"build" ASC
@@ -149,6 +166,6 @@
 				"timestamp" = DEFAULT
 			WHERE
 				"build" = ? AND
-				"server" = ?
+				"name" = ?
 	]]></entry>
 </properties>

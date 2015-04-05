@@ -97,10 +97,14 @@
             <dt>Servers:</dt>
             <dd>
               <ul class="list-inline">
-{% servers.each(function(server) { %}
-                <li>{= server =}</li>
+{% servers.each(function(name) { %}
+                <li>{= name =}</li>
 {% }); %}
               </ul>
+            </dd>
+            <dt>Comment:</dt>
+            <dd>
+              <input class="form-control" type="text" name="comment" value="{= comment =}" />
             </dd>
           </dl>
 [@ END_CLIENT_TEMPLATE @]
@@ -146,7 +150,8 @@
 			region: $region.attr('data-region'),
 			servers: servers,
 			targets: targets,
-			selected: $project.find('*[data-target][data-default]').attr('data-target')
+			selected: $project.find('*[data-target][data-default]').attr('data-target'),
+			comment: $form.find('input[name="comment"]').val()
 		}));
 		$('.launch_modal').modal('show');
 	});
@@ -193,22 +198,32 @@
       </thead>
       <tbody>
 {% $builds.each(function () { %}
-{% var $server = $(this); %}
-{% var build = $server.attr('build').toNumber(10); %}
-{% var invoked = $server.attr('invoked').toNumber(10); %}
-{% var succeed = $server.attr('succeed').toNumber(10); %}
-{% var aborted = $server.attr('aborted').toNumber(10); %}
-        <tr class="{= invoked > succeed + aborted ? 'warning' : (aborted ? 'danger' : 'success') =}" style="cursor:pointer;" data-href="build.htpl?build={= build =}">
-          <td class="text-center">{= build =}</td>
-          <td>{= $server.attr('project') =}</td>
-          <td>{= $server.attr('target') =}</td>
-          <td>{= $server.attr('region') =}</td>
+{% var $build = $(this); %}
+{% with ({
+	name: $build.attr('name'),
+	project: $build.attr('project'),
+	target: $build.attr('target'),
+	region: $build.attr('region'),
+	invoked: $build.attr('invoked').toNumber(10),
+	succeed: $build.attr('succeed').toNumber(10),
+	aborted: $build.attr('aborted').toNumber(10),
+	completed: $build.attr('completed') == 'true',
+	user: $build.attr('user'),
+	comment: $build.attr('comment'),
+	timestamp: Date.create($build.attr('timestamp').toNumber(10))
+}) { %}
+        <tr class="{= completed ? (aborted ? 'danger' : 'success') : 'warning' =}" style="cursor:pointer;" data-href="build.htpl?name={= name =}">
+          <td class="text-center">{= name =}</td>
+          <td>{= project =}</td>
+          <td>{= target =}</td>
+          <td>{= region =}</td>
           <td class="text-right">{= invoked =}</td>
           <td class="text-right">{= succeed =}</td>
           <td class="text-right">{= aborted =}</td>
-          <td>{= $server.attr('user') =}</td>
-          <td class="text-center">{= Date.create($server.attr('timestamp').toNumber(10)).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}') =}</td>
+          <td>{= user =}</td>
+          <td class="text-center">{= timestamp.format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}') =}</td>
         </tr>
+{% }; %}
 {% }); %}
       </tbody>
     </table>

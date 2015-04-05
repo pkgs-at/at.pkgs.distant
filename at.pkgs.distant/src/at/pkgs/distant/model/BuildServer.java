@@ -29,7 +29,7 @@ public class BuildServer {
 
 	private final String build;
 
-	private final String server;
+	private final String name;
 
 	private final int status;
 
@@ -39,12 +39,12 @@ public class BuildServer {
 
 	BuildServer(
 			String build,
-			String server,
+			String name,
 			int status,
 			String output,
 			Timestamp timestamp) {
 		this.build = build;
-		this.server = server;
+		this.name = name;
 		this.status = status;
 		this.output = output;
 		this.timestamp = timestamp;
@@ -55,9 +55,9 @@ public class BuildServer {
 		return this.build;
 	}
 
-	@XmlAttribute(name = "server")
-	public String getServer() {
-		return this.server;
+	@XmlAttribute(name = "name")
+	public String getName() {
+		return this.name;
 	}
 
 	@XmlAttribute(name = "status")

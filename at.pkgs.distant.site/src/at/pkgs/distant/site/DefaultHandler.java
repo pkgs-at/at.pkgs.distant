@@ -95,18 +95,18 @@ public class DefaultHandler extends SiteHandler {
 		return model;
 	}
 
-	protected String build() {
+	protected void build() throws IOException {
 		Site.Project project;
 		Site.Target target;
 		Site.Region region;
 		List<String> servers;
 		File upload;
-		String build;
+		String name;
 		Archive archive;
 
 		if (!this.validateToken("token")) {
 			this.addErrorMessage("Token missmatch");
-			return null;
+			return;
 		}
 		project = this.getSite().getProject(
 				this.getRequest().getParameter("project"));
@@ -114,7 +114,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown project: %s",
 					this.getRequest().getParameter("project"));
-			return null;
+			return;
 		}
 		target = project.getBuild().getTarget(
 				this.getRequest().getParameter("target"));
@@ -122,7 +122,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown target: %s",
 					this.getRequest().getParameter("target"));
-			return null;
+			return;
 		}
 		region = project.getRegion(
 				this.getRequest().getParameter("region"));
@@ -130,7 +130,7 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown region: %s",
 					this.getRequest().getParameter("region"));
-			return null;
+			return;
 		}
 		servers = new ArrayList<String>();
 		for (Site.Server server : region.getServers())
@@ -140,57 +140,51 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Upload directory not found: %s",
 					upload);
-			return null;
+			return;
 		}
-		build = Database.get().getBuildIdentity();
+		name = Database.get().getBuildName();
 		archive = new Archive(
 				new File(
 						this.getSite().getData(),
-						"build." + build + ".zip"));
+						"build." + name + ".zip"));
 		try (Archive.Appender appender = archive.deflate()) {
 			appender.append(upload);
 			appender.append("build.xml", project.getBuild().getFile());
 		}
-		catch (IOException cause) {
-			throw new RuntimeException(cause);
-		}
 		Database.get().newBuild(
-				build,
+				name,
 				project.getName(),
 				target.getName(),
 				region.getName(),
 				servers,
-				this.getUser());
+				this.getUser(),
+				this.getRequest().getParameter("comment"));
 		ControlServlet.interrupt();
-		this.addSuccessMessage("New build: %s", build);
-		return build;
+		this.addSuccessMessage("New build: %s", name);
+		this.getResponse().sendRedirect(
+				new LocationBuilder("build.htpl")
+						.query("name", name)
+						.toString());
+		this.finish();
 	}
 
 	@Override
 	protected void handle() throws ServletException, IOException {
 		String action;
-		String build;
 
 		action = this.getRequest().getParameter("action");
 		if (action == null) action = "default";
 		switch (action) {
-		case "token" :
-			this.issueToken();
-			return;
 		case "refresh" :
 			this.getResponse().setContentType("application/xml");
 			JAXB.marshal(this.model(), this.getResponse().getOutputStream());
 			this.finish();
 			return;
+		case "token" :
+			this.issueToken();
+			return;
 		case "build" :
-			build = this.build();
-			if (build != null) {
-				this.getResponse().sendRedirect(
-						new LocationBuilder("build.htpl")
-								.query("build", build)
-								.toString());
-				this.finish();
-			}
+			this.build();
 			return;
 		}
 	}

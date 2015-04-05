@@ -63,15 +63,15 @@ public class BuildHandler extends SiteHandler {
 	public Build getBuild() {
 		if (this.build == null) {
 			this.build = Database.get().getBuild(
-					this.getRequest().getParameter("build"));
+					this.getRequest().getParameter("name"));
 		}
 		return this.build;
 	}
 
 	public List<BuildServer> getBuildServers() {
 		if (this.buildServers == null) {
-			this.buildServers = Database.get().getBuildServer(
-					this.getRequest().getParameter("build"));
+			this.buildServers = Database.get().getBuildServers(
+					this.getRequest().getParameter("name"));
 		}
 		return this.buildServers;
 	}

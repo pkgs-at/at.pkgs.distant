@@ -1,6 +1,6 @@
 [% /* <meta charset="UTF-8" /> */ %%]
 [% with ({
-	title: 'Build: ' + $.build.build,
+	title: 'Build: ' + $.build.name,
 }) { %%]
 [? extends ~/markup/base.htpl ??]
 [? body_main { ??]
@@ -19,19 +19,25 @@
   <dd class="text-success">[= $.build.succeed =]</dd>
   <dt class="text-danger">Aborted:</dt>
   <dd class="text-danger">[= $.build.aborted =]</dd>
+  <dt>User:</dt>
+  <dd>[= $.build.user =]</dd>
+  <dt>Comment:</dt>
+  <dd>[= $.build.comment =]</dd>
   <dt>Timestamp:</dt>
   <dd>[= Date.create($.build.timestamp.time).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =]</dd>
 </dl>
 [% Java.from($.buildServers).each(function(server) { %%]
-<div class="refresh" data-server="[= server.server =]">
-  <h4 class="text-muted" style="margin-left:180px;">[= server.server =]</h4>
+<div class="refresh" data-server="[= server.name =]">
+  <h4 class="text-muted" style="margin-left:180px;">[= server.name =]</h4>
   <p class="text-muted" style="margin-left:180px;">Now loading...</p>
 [@ BEGIN_CLIENT_TEMPLATE @]
 {% with ({
+	name: $server.attr('name'),
 	status: parseInt($server.attr('status')),
-	output: $server.children('Output').text()
+	output: $server.children('Output').text(),
+	timestamp: Date.create($server.attr('timestamp').toNumber(10))
 }) { %}
-  <h4 class="text-{=  status ? 'danger' : (output ? 'success' : 'warning') =}">{= $server.attr('server') =}</h4>
+  <h4 class="text-{=  status ? 'danger' : (output ? 'success' : 'warning') =}">{= name =}</h4>
 {% if (!output) { %}
   <p class="text-warning" style="margin-left:180px;">Not completed...</p>
 {% } else { %}
@@ -40,11 +46,11 @@
     <dd>{= status =}</dd>
     <dt>Output:</dt>
     <dd>
-      <a href="#server_{= $server.attr('server') =}_output" data-toggle="collapse">show...</a>
-      <pre class="pre-scrollable collapse" id="server_{= $server.attr('server') =}_output">{= output =}</pre>
+      <a href="#server_{= name =}_output" data-toggle="collapse">show...</a>
+      <pre class="pre-scrollable collapse" id="server_{= name =}_output">{= output =}</pre>
     </dd>
     <dt>Timestamp:</dt>
-    <dd>{= Date.create($server.attr('timestamp').toNumber(10)).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =}</dd>
+    <dd>{= timestamp.format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =}</dd>
   </dl>
 {% } %}
 {% }; %}
@@ -59,21 +65,21 @@
 	contents = new Array();
 	$('.refresh').each(function() {
 		var $this;
-		var server;
+		var name;
 		var template;
 
 		$this = $(this);
-		server = $this.attr('data-server');
+		name = $this.attr('data-server');
 		template = $this.find('script[type="application/x-template"]').at().template();
 		contents.push(function($model) {
 			var $server;
 
-			if (server == null) {
+			if (name == null) {
 				$this.html(template({ $model: $model }));
-				return parseInt($model.attr('invoked')) > parseInt($model.attr('succeed')) + parseInt($model.attr('aborted'));
+				return parseInt($model.attr('completed')) != 'true';
 			}
 			else {
-				$server = $model.children('BuildServers').children('BuildServer[server="' + server + '"]');
+				$server = $model.children('BuildServers').children('BuildServer[name="' + name + '"]');
 				$this.html(template({ $server: $server }));
 				return $server.children('Output').length < 1;
 			}
