@@ -58,6 +58,28 @@ import javax.xml.bind.annotation.XmlAttribute;
 			<Server cluster="test.web" />
 		</Region>
 	</Project>
+	<Mail
+			hostname="smtp.gmail.com"
+			port="465"
+			secure="true"
+			user="sysadm.architector@gmail.com"
+			password="********">
+		<From
+			name=""
+			address="" />
+		<ReplyTo
+			name=""
+			address="" />
+		<To
+			name=""
+			address="" />
+		<Cc
+			name=""
+			address="" />
+		<Bcc
+			name=""
+			address="" />
+	</Mail>
 </Site>
  */
 @XmlAccessorType(XmlAccessType.NONE)
@@ -265,6 +287,7 @@ public class Site {
 		}
 	}
 
+	@XmlAccessorType(XmlAccessType.NONE)
 	public static class Target {
 
 		private boolean merged;
@@ -367,6 +390,214 @@ public class Site {
 
 	}
 
+	@XmlAccessorType(XmlAccessType.NONE)
+	public static class Address {
+
+		private boolean merged;
+
+		private String name;
+
+		private String address;
+
+		public Address() {
+			this.merged = false;
+		}
+
+		@XmlAttribute(name = "name")
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.name = value;
+		}
+
+		@XmlAttribute(name = "address")
+		public String getAddress() {
+			return this.address;
+		}
+
+		public void setAddress(String value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.address = value;
+		}
+
+		private Address merge() {
+			this.merged = true;
+			return this;
+		}
+
+	}
+
+	@XmlAccessorType(XmlAccessType.NONE)
+	public static class Mail {
+
+		private boolean merged;
+
+		private String hostname;
+
+		private int port;
+
+		private boolean secure;
+
+		private String username;
+
+		private String password;
+
+		private Address from;
+
+		private Address replyTo;
+
+		private List<Address> to;
+
+		private List<Address> cc;
+
+		private List<Address> bcc;
+
+		public Mail() {
+			this.merged = false;
+		}
+
+		@XmlAttribute(name = "hostname")
+		public String getHostname() {
+			return this.hostname;
+		}
+
+		public void setHostname(String value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.hostname = value;
+		}
+
+		@XmlAttribute(name = "port")
+		public int getPort() {
+			return this.port;
+		}
+
+		public void setPort(int value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.port = value;
+		}
+
+		@XmlAttribute(name = "secure")
+		public boolean getSecure() {
+			return this.secure;
+		}
+
+		public void setSecure(boolean value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.secure = value;
+		}
+
+		@XmlAttribute(name = "username")
+		public String getUsername() {
+			return this.username;
+		}
+
+		public void setUsername(String value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.username = value;
+		}
+
+		@XmlAttribute(name = "password")
+		public String getPassword() {
+			return this.password;
+		}
+
+		public void setPassword(String value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.password = value;
+		}
+
+		@XmlElement(name = "From")
+		public Address getFrom() {
+			return this.from;
+		}
+
+		public void setFrom(Address value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.from = value;
+		}
+
+		@XmlElement(name = "ReplyTo")
+		public Address getReplyTo() {
+			return this.replyTo;
+		}
+
+		public void setReplyTo(Address value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.replyTo = value;
+		}
+
+		@XmlElement(name = "To")
+		public List<Address> getTo() {
+			return this.to;
+		}
+
+		public void setTo(List<Address> value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.to = value;
+		}
+
+		@XmlElement(name = "Cc")
+		public List<Address> getCc() {
+			return this.cc;
+		}
+
+		public void setCc(List<Address> value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.cc = value;
+		}
+
+		@XmlElement(name = "Bcc")
+		public List<Address> getBcc() {
+			return this.bcc;
+		}
+
+		public void setBcc(List<Address> value) {
+			if (this.merged)
+				throw new IllegalStateException("already merged");
+			this.bcc = value;
+		}
+
+		private Mail merge() {
+			
+			if (this.from != null)
+				this.from.merge();
+			if (this.replyTo != null)
+				this.replyTo.merge();
+			if (this.to == null)
+				this.to = Collections.emptyList();
+			this.to = Collections.unmodifiableList(this.to);
+			for (Address item : this.to)
+				item.merge();
+			if (this.cc == null)
+				this.cc = Collections.emptyList();
+			this.cc = Collections.unmodifiableList(this.cc);
+			for (Address item : this.cc)
+				item.merge();
+			if (this.bcc == null)
+				this.bcc = Collections.emptyList();
+			this.bcc = Collections.unmodifiableList(this.bcc);
+			for (Address item : this.bcc)
+				item.merge();
+			this.merged = true;
+			return this;
+		}
+
+	}
+
 	private boolean merged;
 
 	private String data;
@@ -380,6 +611,8 @@ public class Site {
 	private List<Project> projects;
 
 	private Map<String, Project> projectMap;
+
+	private Mail mail;
 
 	public Site() {
 		this.merged = false;
@@ -439,6 +672,17 @@ public class Site {
 		this.projects = value;
 	}
 
+	@XmlElement(name = "Mail")
+	public Mail getMail() {
+		return this.mail;
+	}
+
+	public void setMail(Mail value) {
+		if (this.merged)
+			throw new IllegalStateException("already merged");
+		this.mail = value;
+	}
+
 	private void merge(Region region) {
 		List<Server> servers;
 
@@ -481,6 +725,8 @@ public class Site {
 			item.build = Build.load(item.getName());
 			this.projectMap.put(item.getName(), item.merge());
 		}
+		if (this.mail != null)
+			this.mail.merge();
 		this.merged = true;
 		return this;
 	}

@@ -26,11 +26,14 @@ import java.io.File;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import at.pkgs.web.http.HttpRequest;
 import at.pkgs.web.http.HttpResponse;
+import at.pkgs.mail.Transport;
+import at.pkgs.mail.Message;
 import at.pkgs.distant.ControlCommand;
 import at.pkgs.distant.model.Site;
 import at.pkgs.distant.model.Database;
@@ -95,11 +98,11 @@ public class ControlServlet extends ServiceServlet {
 				build = Database.get().getBuild(server.getBuild());
 				this.command(
 						ControlCommand.EXECUTE,
-						build.getBuild(),
+						build.getName(),
 						/* FOR DEBUG *
 						"-d",
 						/* END DEBUG */
-						"-Ddistant.build=" + build.getBuild(),
+						"-Ddistant.build=" + build.getName(),
 						"-Ddistant.project=" + build.getProject(),
 						"-Ddistant.target=" + build.getTarget(),
 						"-Ddistant.region=" + build.getRegion(),
@@ -157,6 +160,95 @@ public class ControlServlet extends ServiceServlet {
 		response.sendResponse("application/zip", file);
 	}
 
+	private void send(
+			Site.Mail mail,
+			Build build,
+			List<BuildServer> servers) {
+		StringBuilder body;
+		Message.MixedParts parts;
+		Message message;
+		Transport transport;
+
+		if (mail == null) return;
+		body = new StringBuilder();
+		body.append("Distant Build Report").append("\r\n");
+		body.append("\r\n");
+		body.append("Build:   ").append(build.getName()).append("\r\n");
+		body.append("Project: ").append(build.getProject()).append("\r\n");
+		body.append("Target:  ").append(build.getTarget()).append("\r\n");
+		body.append("Region:  ").append(build.getRegion()).append("\r\n");
+		body.append("Invoked: ").append(build.getInvoked()).append("\r\n");
+		body.append("Succeed: ").append(build.getSucceed()).append("\r\n");
+		body.append("Aborted: ").append(build.getAborted()).append("\r\n");
+		body.append("User:    ").append(build.getUser()).append("\r\n");
+		body.append("Comment: ").append(build.getComment()).append("\r\n");
+		body.append("Servers:");
+		parts = new Message.MixedParts();
+		parts.part(
+				new Message.TextPart(
+						body.toString(),
+						"plain"));
+		for (BuildServer server : servers) {
+			byte[] content;
+
+			body.append(' ').append(server.getName());
+			body.append(':').append(server.getStatus());
+			content = server.getOutput().getBytes(StandardCharsets.UTF_8);
+			parts.part(
+					new Message.AttachmentPart(
+							Message.newDataHandler(
+									"text/plain; charset=UTF-8",
+									String.format(
+											"%s.%s.txt",
+											build.getName(),
+											server.getName()),
+									content)));
+		}
+		body.append("\r\n");
+		message = new Message(Message.Encoding.JAPANESE);
+		message.subject(
+				String.format(
+						"[distant build: %s] %s.%s on %s aborted: %d",
+						build.getName(),
+						build.getProject(),
+						build.getTarget(),
+						build.getRegion(),
+						build.getAborted()));
+		if (mail.getFrom() != null)
+			message.from(
+					mail.getFrom().getAddress(),
+					mail.getFrom().getName());
+		if (mail.getReplyTo() != null)
+			message.replyTo(
+					mail.getReplyTo().getAddress(),
+					mail.getReplyTo().getName());
+		for (Site.Address item : mail.getTo())
+			message.to(
+					item.getAddress(),
+					item.getName());
+		for (Site.Address item : mail.getCc())
+			message.cc(
+					item.getAddress(),
+					item.getName());
+		for (Site.Address item : mail.getBcc())
+			message.bcc(
+					item.getAddress(),
+					item.getName());
+		message.parts(parts);
+		transport = new Transport(
+				mail.getHostname(),
+				mail.getPort(),
+				mail.getSecure());
+		if (mail.getUsername() != null)
+			transport.authenticate(mail.getUsername(), mail.getPassword());
+		try {
+			transport.send(message);
+		}
+		catch (Exception cause) {
+			throw new RuntimeException(cause);
+		}
+	}
+
 	@Path(methods = { "POST" }, pattern = "^/build/([^/]+)/([^/]+)$")
 	protected void doBuildPost(
 			HttpRequest request,
@@ -192,7 +284,10 @@ public class ControlServlet extends ServiceServlet {
 				status,
 				output.toString());
 		if (!completed) return;
-		// TODO mail
+		this.send(
+				Site.load().getMail(),
+				Database.get().getBuild(name),
+				Database.get().getBuildServers(name));
 	}
 
 	@Path(methods = { "GET" }, pattern = "^/bundled/([^/]+)$")

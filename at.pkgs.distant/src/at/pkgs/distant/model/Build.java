@@ -75,7 +75,7 @@ public class Build {
 	}
 
 	@XmlAttribute(name = "name")
-	public String getBuild() {
+	public String getName() {
 		return this.name;
 	}
 

@@ -78,6 +78,8 @@ public abstract class SiteHandler extends AbstractHandler{
 					throws ServletException, IOException {
 		super.initialize(holder, request, response);
 		this.user = this.user();
+		this.getRequest().setCharacterEncoding("UTF-8");
+		this.getResponse().setCharacterEncoding("UTF-8");
 		this.getResponse().setHeader("Cache-Control", "no-cache");
 	}
 
