@@ -64,22 +64,24 @@
 <div class="modal fade launch_modal">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="POST" target="_blank">
+      <form method="POST" target="_blank" class="form-horizontal">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title">Launch Build</h4>
         </div>
         <div class="modal-body">
 [@ BEGIN_CLIENT_TEMPLATE @]
-          <dl class="dl-horizontal" style="margin:0px;">
-            <dt>Project:</dt>
-            <dd>
-              {= project =}
+          <div class="form-group" style="margin-bottom:4px;">
+            <label class="col-sm-2 control-label">Project:</label>
+            <div class="col-sm-10">
+              <p class="form-control-static">{= project =}</p>
               <input type="hidden" name="project" value="{= project =}" />
-            </dd>
-            <dt>Target:</dt>
-            <dd>
-              <select name="target">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label class="col-sm-2 control-label">Target:</label>
+            <div class="col-sm-10">
+              <select name="target" class="form-control">
 {% targets.each(function(target) { %}
 {% if (target == selected) { %}
                 <option value="{= target =}" selected="selected">{= target =}</option>
@@ -88,25 +90,31 @@
 {% } %}
 {% }); %}
               </select>
-            </dd>
-            <dt>Region:</dt>
-            <dd>
-              {= region =}
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label class="col-sm-2 control-label">Region:</label>
+            <div class="col-sm-10">
+              <p class="form-control-static">{= region =}</p>
               <input type="hidden" name="region" value="{= region =}" />
-            </dd>
-            <dt>Servers:</dt>
-            <dd>
-              <ul class="list-inline">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label class="col-sm-2 control-label">Servers:</label>
+            <div class="col-sm-10">
+              <p class="form-control-static">
 {% servers.each(function(name) { %}
-                <li>{= name =}</li>
+                {= name =}&nbsp;
 {% }); %}
-              </ul>
-            </dd>
-            <dt>Comment:</dt>
-            <dd>
+              </p>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:4px;">
+            <label class="col-sm-2 control-label">Comment:</label>
+            <div class="col-sm-10">
               <input class="form-control" type="text" name="comment" value="{= comment =}" />
-            </dd>
-          </dl>
+            </div>
+          </div>
 [@ END_CLIENT_TEMPLATE @]
         </div>
         <div class="modal-footer">
