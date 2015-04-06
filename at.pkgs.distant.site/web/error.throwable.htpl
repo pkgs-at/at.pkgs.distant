@@ -1,0 +1,32 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: 'Unexpected Error',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4><a data-toggle="collapse" href="#detail">Details...</a></h4>
+<div class="collapse" id="detail">
+[% with({
+	buffer: undefined,
+	out: undefined,
+	cause: undefined,
+}) {
+	buffer = new java.io.StringWriter();
+	out = new java.io.PrintWriter(buffer);
+	out.print($.request.requestURL);
+	if ($.request.queryString) {
+		out.print('?');
+		out.print($.request.queryString);
+	}
+	out.println();
+	out.println();
+	cause = $.request.getAttribute('javax.servlet.error.exception');
+	cause.printStackTrace(out);
+	out.flush();
+%%]
+  <pre>[= buffer =]</pre>
+[% } %%]
+</div>
+[? } body_main ??]
+[% } %%]

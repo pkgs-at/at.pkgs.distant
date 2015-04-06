@@ -30,6 +30,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
 import at.pkgs.web.client.LocationBuilder;
+import at.pkgs.web.http.HttpResponse;
 import at.pkgs.distant.Archive;
 import at.pkgs.distant.model.Site;
 import at.pkgs.distant.model.Build;
@@ -105,6 +106,8 @@ public class DefaultHandler extends SiteHandler {
 
 		if (!this.validateToken("token")) {
 			this.addErrorMessage("Token missmatch");
+			this.getResponse().sendError(HttpResponse.SC_BAD_REQUEST);
+			this.finish();
 			return;
 		}
 		project = this.getSite().getProject(
@@ -113,6 +116,8 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown project: %s",
 					this.getRequest().getParameter("project"));
+			this.getResponse().sendError(HttpResponse.SC_BAD_REQUEST);
+			this.finish();
 			return;
 		}
 		target = project.getBuild().getTarget(
@@ -121,6 +126,8 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown target: %s",
 					this.getRequest().getParameter("target"));
+			this.getResponse().sendError(HttpResponse.SC_BAD_REQUEST);
+			this.finish();
 			return;
 		}
 		region = project.getRegion(
@@ -129,6 +136,8 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Unknown region: %s",
 					this.getRequest().getParameter("region"));
+			this.getResponse().sendError(HttpResponse.SC_BAD_REQUEST);
+			this.finish();
 			return;
 		}
 		servers = new ArrayList<String>();
@@ -139,6 +148,8 @@ public class DefaultHandler extends SiteHandler {
 			this.addErrorMessage(
 					"Upload directory not found: %s",
 					upload);
+			this.getResponse().sendError(HttpResponse.SC_BAD_REQUEST);
+			this.finish();
 			return;
 		}
 		name = this.getDatabase().getBuildName();
@@ -185,6 +196,8 @@ public class DefaultHandler extends SiteHandler {
 		case "build" :
 			this.build();
 			return;
+		case "error" :
+			throw new RuntimeException("this is a test");
 		}
 	}
 
