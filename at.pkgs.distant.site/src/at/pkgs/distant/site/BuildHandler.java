@@ -28,7 +28,6 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
 import at.pkgs.web.http.HttpResponse;
-import at.pkgs.distant.model.Database;
 import at.pkgs.distant.model.Build;
 import at.pkgs.distant.model.BuildServer;
 
@@ -62,7 +61,7 @@ public class BuildHandler extends SiteHandler {
 
 	public Build getBuild() {
 		if (this.build == null) {
-			this.build = Database.get().getBuild(
+			this.build = this.getDatabase().getBuild(
 					this.getRequest().getParameter("name"));
 		}
 		return this.build;
@@ -70,7 +69,7 @@ public class BuildHandler extends SiteHandler {
 
 	public List<BuildServer> getBuildServers() {
 		if (this.buildServers == null) {
-			this.buildServers = Database.get().getBuildServers(
+			this.buildServers = this.getDatabase().getBuildServers(
 					this.getRequest().getParameter("name"));
 		}
 		return this.buildServers;

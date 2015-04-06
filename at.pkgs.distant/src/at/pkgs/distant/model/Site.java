@@ -31,7 +31,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlAttribute;
 
 /*
-<Site data="/var/local/distant/">
+<Site
+		build="./demo.d/"
+		data="/var/local/distant/demo/"
+		resource="/var/www/webdav/demo/">
 	<Cluster name="prod.web">
 		<Server name="web0" />
 		<Server name="web1" />
@@ -376,13 +379,9 @@ public class Site {
 			return this;
 		}
 
-		public static Build load(String name) {
-			File file;
+		public static Build load(File file) {
 			Build model;
 
-			file = new File(
-					System.getProperty("at.pkgs.distant.site"),
-					"project.d/" + name + ".xml");
 			model = JAXB.unmarshal(file, Build.class);
 			model.file = file;
 			return model.merge();
@@ -572,7 +571,6 @@ public class Site {
 		}
 
 		private Mail merge() {
-			
 			if (this.from != null)
 				this.from.merge();
 			if (this.replyTo != null)
@@ -600,9 +598,11 @@ public class Site {
 
 	private boolean merged;
 
+	private String build;
+
 	private String data;
 
-	private String upload;
+	private String resource;
 
 	private List<Cluster> clusters;
 
@@ -614,8 +614,21 @@ public class Site {
 
 	private Mail mail;
 
+	private File file;
+
 	public Site() {
 		this.merged = false;
+	}
+
+	@XmlAttribute(name = "build")
+	public String getBuild() {
+		return this.build;
+	}
+
+	public void setBuild(String value) {
+		if (this.merged)
+			throw new IllegalStateException("already merged");
+		this.build = value;
 	}
 
 	@XmlAttribute(name = "data")
@@ -629,15 +642,15 @@ public class Site {
 		this.data = value;
 	}
 
-	@XmlAttribute(name = "upload")
-	public String getUpload() {
-		return this.upload;
+	@XmlAttribute(name = "resource")
+	public String getResource() {
+		return this.resource;
 	}
 
-	public void setUpload(String value) {
+	public void setResource(String value) {
 		if (this.merged)
 			throw new IllegalStateException("already merged");
-		this.upload = value;
+		this.resource = value;
 	}
 
 	@XmlElement(name = "Cluster")
@@ -683,6 +696,10 @@ public class Site {
 		this.mail = value;
 	}
 
+	public File getFile() {
+		return this.file;
+	}
+
 	private void merge(Region region) {
 		List<Server> servers;
 
@@ -708,6 +725,15 @@ public class Site {
 	}
 
 	private Site merge() {
+		File base;
+
+		base = this.file.getParentFile();
+		if (!new File(this.build).isAbsolute())
+			this.build = new File(base, this.build).getAbsolutePath();
+		if (!new File(this.data).isAbsolute())
+			this.data = new File(base, this.data).getAbsolutePath();
+		if (!new File(this.resource).isAbsolute())
+			this.resource = new File(base, this.resource).getAbsolutePath();
 		if (this.clusters == null)
 			this.clusters = Collections.emptyList();
 		this.clusters = Collections.unmodifiableList(this.clusters);
@@ -719,10 +745,13 @@ public class Site {
 		this.projects = Collections.unmodifiableList(this.projects);
 		this.projectMap = new HashMap<String, Project>();
 		for (Project item : this.projects) {
+			File build;
+
 			if (item.regions != null)
 				for (Region region : item.regions)
 					this.merge(region);
-			item.build = Build.load(item.getName());
+			build = new File(this.build, item.getName() + ".xml");
+			item.build = Build.load(build);
 			this.projectMap.put(item.getName(), item.merge());
 		}
 		if (this.mail != null)
@@ -731,12 +760,17 @@ public class Site {
 		return this;
 	}
 
-	public static Site load() {
-		return JAXB.unmarshal(
-				new File(
-						System.getProperty("at.pkgs.distant.site"),
-						"site.xml"),
-				Site.class).merge();
+	public static Site load(String name) {
+		String path;
+		File file;
+		Site model;
+
+		path = System.getProperty("at.pkgs.distant.site:" + name);
+		if (path == null) path = System.getProperty("at.pkgs.distant.site");
+		file = new File(path);
+		model = JAXB.unmarshal(file, Site.class);
+		model.file = file;
+		return model.merge();
 	}
 
 }

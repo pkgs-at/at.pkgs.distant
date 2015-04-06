@@ -47,7 +47,7 @@ public final class Database {
 
 	private final Connection connection;
 
-	private Database() {
+	private Database(String name) {
 		Site site;
 		StringBuilder builder;
 
@@ -57,7 +57,7 @@ public final class Database {
 		catch (ClassNotFoundException cause) {
 			throw new RuntimeException(cause);
 		}
-		site = Site.load();
+		site = Site.load(name);
 		builder = new StringBuilder("jdbc:h2:file:");
 		builder.append(new File(site.getData(), "site").getAbsolutePath());
 		builder.append(";DB_CLOSE_DELAY=0");
@@ -586,11 +586,11 @@ public final class Database {
 
 	private static Database instance;
 
-	public static Database get() {
+	public static Database get(String name) {
 		if (Database.instance == null) {
 			synchronized (Database.class) {
 				if (Database.instance == null)
-					Database.instance = new Database();
+					Database.instance = new Database(name);
 			}
 		}
 		return Database.instance;

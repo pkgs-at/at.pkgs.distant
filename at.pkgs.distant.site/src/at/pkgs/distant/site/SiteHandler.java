@@ -25,11 +25,12 @@ import java.io.Serializable;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpSession;
-import at.pkgs.distant.model.Site;
 import at.pkgs.web.http.HttpRequest;
 import at.pkgs.web.http.HttpResponse;
 import at.pkgs.web.trio.AbstractHandler;
 import at.pkgs.web.trio.ContextHolder;
+import at.pkgs.distant.model.Site;
+import at.pkgs.distant.model.Database;
 
 public abstract class SiteHandler extends AbstractHandler{
 
@@ -49,6 +50,8 @@ public abstract class SiteHandler extends AbstractHandler{
 	private String user;
 
 	private Site site;
+
+	private Database database;
 
 	private String user() throws IOException {
 		String authorization;
@@ -126,8 +129,15 @@ public abstract class SiteHandler extends AbstractHandler{
 	}
 
 	public Site getSite() {
-		if (this.site == null) this.site = Site.load();
+		if (this.site == null)
+			this.site = Site.load(this.getRequest().getContextPath());
 		return this.site;
+	}
+
+	public Database getDatabase() {
+		if (this.database == null)
+			this.database = Database.get(this.getRequest().getContextPath());
+		return this.database;
 	}
 
 }

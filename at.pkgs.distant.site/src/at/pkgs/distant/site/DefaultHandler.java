@@ -32,7 +32,6 @@ import javax.servlet.annotation.WebFilter;
 import at.pkgs.web.client.LocationBuilder;
 import at.pkgs.distant.Archive;
 import at.pkgs.distant.model.Site;
-import at.pkgs.distant.model.Database;
 import at.pkgs.distant.model.Build;
 
 public class DefaultHandler extends SiteHandler {
@@ -91,7 +90,7 @@ public class DefaultHandler extends SiteHandler {
 		model = new Model();
 		for (String name : ControlServlet.getServers())
 			model.addStandbyServer(name);
-		model.setBuilds(Database.get().listBuild(20, 0));
+		model.setBuilds(this.getDatabase().listBuild(20, 0));
 		return model;
 	}
 
@@ -135,14 +134,14 @@ public class DefaultHandler extends SiteHandler {
 		servers = new ArrayList<String>();
 		for (Site.Server server : region.getServers())
 			servers.add(server.getName());
-		upload = new File(this.getSite().getUpload(), project.getName());
+		upload = new File(this.getSite().getResource(), project.getName());
 		if (!upload.exists()) {
 			this.addErrorMessage(
 					"Upload directory not found: %s",
 					upload);
 			return;
 		}
-		name = Database.get().getBuildName();
+		name = this.getDatabase().getBuildName();
 		archive = new Archive(
 				new File(
 						this.getSite().getData(),
@@ -151,7 +150,7 @@ public class DefaultHandler extends SiteHandler {
 			appender.append(upload);
 			appender.append("build.xml", project.getBuild().getFile());
 		}
-		Database.get().newBuild(
+		this.getDatabase().newBuild(
 				name,
 				project.getName(),
 				target.getName(),

@@ -48,16 +48,21 @@ public class ControlServlet extends ServiceServlet {
 
 	private static final long serialVersionUID = 1L;
 
+	protected Database getDatabase(HttpRequest request) {
+		return Database.get(request.getContextPath());
+	}
+
 	@Path(methods = { "GET" }, pattern = "^/poll/([^/]+)$")
 	protected void doPollGet(
 			HttpRequest request,
 			HttpResponse response,
 			final String name)
 					throws ServletException, IOException {
+		final Database database;
 		final PrintWriter writer;
 
+		database = this.getDatabase(request);
 		response.setContentType("text/event-stream");
-		response.setCharacterEncoding("UTF-8");
 		writer = response.getWriter();
 		this.enter(new Background(request, response) {
 
@@ -93,9 +98,9 @@ public class ControlServlet extends ServiceServlet {
 				BuildServer server;
 				Build build;
 
-				server = Database.get().getFirstAvailableBuildServer(name);
+				server = database.getFirstAvailableBuildServer(name);
 				if (server == null) return false;
-				build = Database.get().getBuild(server.getBuild());
+				build = database.getBuild(server.getBuild());
 				this.command(
 						ControlCommand.EXECUTE,
 						build.getName(),
@@ -144,14 +149,16 @@ public class ControlServlet extends ServiceServlet {
 			HttpResponse response,
 			String name)
 					throws ServletException, IOException {
+		Database database;
 		File file;
 
-		if (Database.get().getBuild(name) == null) {
+		database = this.getDatabase(request);
+		if (database.getBuild(name) == null) {
 			response.sendError(HttpResponse.SC_NOT_FOUND);
 			return;
 		}
 		file = new File(
-				Site.load().getData(),
+				Site.load(request.getContextPath()).getData(),
 				"build." + name + ".zip");
 		if (!file.exists() || !file.isFile()) {
 			response.sendError(HttpResponse.SC_NOT_FOUND);
@@ -256,11 +263,13 @@ public class ControlServlet extends ServiceServlet {
 			String name,
 			String server)
 					throws ServletException, IOException {
+		Database database;
 		int status;
 		StringBuilder output;
 		boolean completed;
 
-		if (Database.get().getBuild(name) == null) {
+		database = this.getDatabase(request);
+		if (database.getBuild(name) == null) {
 			response.sendError(HttpResponse.SC_NOT_FOUND);
 			return;
 		}
@@ -278,16 +287,16 @@ public class ControlServlet extends ServiceServlet {
 			while ((line = reader.readLine()) != null)
 				output.append(line).append('\n');
 		}
-		completed = Database.get().setResultBuildServer(
+		completed = database.setResultBuildServer(
 				name,
 				server,
 				status,
 				output.toString());
 		if (!completed) return;
 		this.send(
-				Site.load().getMail(),
-				Database.get().getBuild(name),
-				Database.get().getBuildServers(name));
+				Site.load(request.getContextPath()).getMail(),
+				database.getBuild(name),
+				database.getBuildServers(name));
 	}
 
 	@Path(methods = { "GET" }, pattern = "^/bundled/([^/]+)$")
@@ -313,6 +322,8 @@ public class ControlServlet extends ServiceServlet {
 			HttpRequest request,
 			HttpResponse response)
 					throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
 		response.setHeader("Cache-Control", "no-cache");
 		super.service(request, response);
 	}
