@@ -1,0 +1,12 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: 'Not Found',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<div class="alert alert-danger">
+  <p>The requested resource is not available.</p>
+</div>
+[? } body_main ??]
+[% } %%]

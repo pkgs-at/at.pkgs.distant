@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja-JP">
   <head>
 [? head { ??]
     <base href="[= $.request.contextPath =]/" />
@@ -40,7 +40,6 @@
           <h1>dist'ant</h1>
           <h2><small>an implementation of distributed Ant processor for deployment</small></h2>
         </div>
-        <h3>[= title =]</h3>
       </div>
       <div id="base_message" class="col-xs-12">
 [% if ($.hasMessage()) { %%]
@@ -51,12 +50,42 @@
 [% }); %%]
 [% } %%]
       </div>
-      <div id="base_main" class="col-xs-12">
+      <div id="side_menu" class="col-xs-3">
+        <ul class="nav nav-pills nav-stacked">
+          <li><a href=".">概要</a></li>
+          <li><a href="install.htpl">インストール</a></li>
+          <li><a href="configure.htpl">設定</a></li>
+          <li><a href="operation.htpl">操作方法</a></li>
+        </ul>
+      </div>
+      <script>
+(function(root, unasigned) {
+	var $root;
+	var $fiexd;
+	var update;
+	var timeout;
+
+	$root = $(root);
+	$fixed = $('#side_menu ul');
+	$fixed.css('position', 'relative');
+	update = function() {
+		timeout = null;
+		$fixed.animate({ 'top': $root.scrollTop() }, 200);
+	};
+	update();
+	$root.scroll(function() {
+		if (timeout != null) root.clearTimeout(timeout);
+		timeout = root.setTimeout(update, 200);
+	});
+})(this);
+      </script>
+      <div id="base_main" class="col-xs-9">
 [? body_main { ??]
+        <h3 style="margin-top:10px;">[= title =]</h3>
 [? } body_main ??]
       </div>
-      <div id="base_footer" class="col-xs-12">
-        <address class="text-right">Powered by <a href="http://distant.pkgs.at/">Dist'ant</a></address>
+      <div id="base_footer" class="col-xs-12" style="margin-top:40px;">
+        <address class="text-center">Copyright &copy; 2015 <a href="https://architector.co.jp/" target="_blank">Architector Inc.</a> All Rights Reserved.</address></address>
       </div>
     </div>
 [? } body ??]

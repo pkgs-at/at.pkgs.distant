@@ -1,0 +1,9 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: 'Bad Request',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+[? } body_main ??]
+[% } %%]

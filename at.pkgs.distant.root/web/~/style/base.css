@@ -1,0 +1,19 @@
+html {
+	overflow-y: scroll;
+}
+body.modal-open{
+	padding-left: 16px;
+}
+#base_container {
+	width: 960px!important;
+	margin: auto;
+}
+#base_header_headline {
+	position: relative;
+}
+#base_header_headline h2 {
+	position: absolute;
+	right:0px;
+	bottom: 0px;
+	margin: 0px;
+}

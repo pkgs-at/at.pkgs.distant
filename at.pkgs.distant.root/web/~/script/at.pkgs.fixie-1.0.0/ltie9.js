@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-package at.pkgs.distant.root;
-
-import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebFilter;
-
-public class DefaultHandler extends RootHandler {
-
-	@WebFilter(urlPatterns = {"/default.htpl"})
-	public static class Filter extends RootHandler.Filter {
-
-	}
-
-	@Override
-	protected void handle() throws ServletException, IOException {
-		this.finish();
-	}
-
-}
+/*
+ * usage:
+ *     <script src="jquery.js"></script>
+ *     <!--[if lt IE 8]>
+ *     <script src="ltie8.js"></script>
+ *     <![endif]-->
+ *     <!--[if lt IE 9]>
+ *     <script src="ltie9.js"></script>
+ *     <![endif]-->
+ */
+(function(root, unasigned) {
+	/*
+	 * fix <IE9 enter key does not apply submit button
+	 * HTML5 specification: http://www.w3.org/TR/html5/forms.html#implicit-submission
+	 */
+	$(root.document).on('keypress', 'form input, form select', function(event) {
+		if (event.keyCode != 13) return;
+		$(this).closest('form').find('button:submit:not(disabled):first').click();
+		return false;
+	});
+})(this);

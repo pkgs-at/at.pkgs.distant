@@ -1,0 +1,13 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: '概要',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4>dist'antについて</h4>
+<p>dist'antはデプロイツールです。</p>
+<p>WebDavなどを使用してアップロードしたファイルと後述のビルドファイルを一緒にデプロイ対象へコピーし、実行結果を記録します。</p>
+<p>各デプロイ対象では、ファイルコピーやリネームなどを実行するために組込みの<a href="http://ant.apache.org/">Apache Ant</a>を使用します。</p>
+[? } body_main ??]
+[% } %%]
