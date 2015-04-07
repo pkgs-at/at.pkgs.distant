@@ -30,13 +30,6 @@ public class DefaultHandler extends RootHandler {
 
 	@Override
 	protected void handle() throws ServletException, IOException {
-		if (this.getRequest().getParameterMap().containsKey("download")) {
-			this.getResponse().sendRedirect(
-					"https://github.com/pkgs-at/at.pkgs.distant/raw/master/" +
-					"at.pkgs.distant.site/at.pkgs.distant.site.war");
-			this.finish();
-		}
-		this.getResponse().sendResponse("text/plain", "default");
 		this.finish();
 	}
 
