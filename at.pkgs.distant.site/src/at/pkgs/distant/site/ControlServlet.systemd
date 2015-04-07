@@ -7,7 +7,7 @@ Type=simple
 User=distant
 Group=distant
 WorkingDirectory=/home/distant/%2$s
-ExecStart=/usr/bin/java -jar /usr/local/share/java/distant.jar %1$s %2$s
+ExecStart=/usr/bin/java -jar /usr/local/share/java/at.pkgs.distant.jar %1$s %2$s
 Restart=always
 KillMode=process
 
