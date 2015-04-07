@@ -6,26 +6,35 @@
 [? body_main { ??]
 [? base ??]
 <h4>Build Information</h4>
-<dl class="dl-horizontal">
-  <dt>Project:</dt>
-  <dd>[= $.build.project =]</dd>
-  <dt>Target:</dt>
-  <dd>[= $.build.target =]</dd>
-  <dt>Region:</dt>
-  <dd>[= $.build.region =]</dd>
-  <dt class="text-info">Invoked:</dt>
-  <dd class="text-info">[= $.build.invoked =]</dd>
-  <dt class="text-success">Succeed:</dt>
-  <dd class="text-success">[= $.build.succeed =]</dd>
-  <dt class="text-danger">Aborted:</dt>
-  <dd class="text-danger">[= $.build.aborted =]</dd>
-  <dt>User:</dt>
-  <dd>[= $.build.user =]</dd>
-  <dt>Comment:</dt>
-  <dd>[= $.build.comment =]</dd>
-  <dt>Timestamp:</dt>
-  <dd>[= Date.create($.build.timestamp.time).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =]</dd>
+<div class="refresh">
+  <p class="text-muted" style="margin-left:180px;">Now loading...</p>
+[@ BEGIN_CLIENT_TEMPLATE @]
+{% with ({
+	$build: $model.children('Build')
+}) { %}
+  <dl class="dl-horizontal refresh">
+    <dt>Project:</dt>
+    <dd>[= $.build.project =]</dd>
+    <dt>Target:</dt>
+    <dd>[= $.build.target =]</dd>
+    <dt>Region:</dt>
+    <dd>[= $.build.region =]</dd>
+    <dt class="text-info">Invoked:</dt>
+    <dd class="text-info">{= $build.attr('invoked') =}</dd>
+    <dt class="text-success">Succeed:</dt>
+    <dd class="text-success">{= $build.attr('succeed') =}</dd>
+    <dt class="text-danger">Aborted:</dt>
+    <dd class="text-danger">{= $build.attr('aborted') =}</dd>
+    <dt>User:</dt>
+    <dd>[= $.build.user =]</dd>
+    <dt>Comment:</dt>
+    <dd>[= $.build.comment =]</dd>
+    <dt>Timestamp:</dt>
+    <dd>[= Date.create($.build.timestamp.time).format('{yyyy}-{MM}-{dd}T{HH}:{mm}:{ss}{isotz}') =]</dd>
+{% }; %}
 </dl>
+[@ END_CLIENT_TEMPLATE @]
+</div>
 [% Java.from($.buildServers).each(function(server) { %%]
 <div class="refresh" data-server="[= server.name =]">
   <h4 class="text-muted" style="margin-left:180px;">[= server.name =]</h4>
@@ -76,7 +85,7 @@
 
 			if (name == null) {
 				$this.html(template({ $model: $model }));
-				return parseInt($model.attr('completed')) != 'true';
+				return $model.children('Build').attr('completed') != 'true';
 			}
 			else {
 				$server = $model.children('BuildServers').children('BuildServer[name="' + name + '"]');

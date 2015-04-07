@@ -42,7 +42,18 @@ public class BuildHandler extends SiteHandler {
 	@XmlRootElement(name = "Model")
 	public static class Model {
 
+		private Build build;
+
 		private List<BuildServer> buildServers;
+
+		@XmlElement(name = "Build")
+		public Build getBuild() {
+			return this.build;
+		}
+
+		public void setBuild(Build value) {
+			this.build = value;
+		}
 
 		@XmlElementWrapper(name = "BuildServers")
 		@XmlElement(name = "BuildServer")
@@ -53,6 +64,7 @@ public class BuildHandler extends SiteHandler {
 		public void setBuildServers(List<BuildServer> value) {
 			this.buildServers = value;
 		}
+
 	}
 
 	private Build build;
@@ -79,6 +91,7 @@ public class BuildHandler extends SiteHandler {
 		Model model;
 
 		model = new Model();
+		model.setBuild(this.getBuild());
 		model.setBuildServers(this.getBuildServers());
 		return model;
 	}
