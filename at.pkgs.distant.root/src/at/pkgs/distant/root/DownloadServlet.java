@@ -32,7 +32,7 @@ public class DownloadServlet extends ServiceServlet {
 
 	@Path(
 			methods = { "GET" },
-			pattern = "at\\.pkgs\\.distant\\.site\\.war")
+			pattern = "^/at\\.pkgs\\.distant\\.site\\.war$")
 	protected void doAtPkgsDistantSiteWarGet(
 			HttpRequest request,
 			HttpResponse response)
