@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.IOException;
@@ -52,7 +53,9 @@ public class ControlServlet extends ServiceServlet {
 		return Database.get(request.getContextPath());
 	}
 
-	@Path(methods = { "GET" }, pattern = "^/poll/([^/]+)$")
+	@Path(
+			methods = { "GET" },
+			pattern = "^/poll/([^/]+)$")
 	protected void doPollGet(
 			HttpRequest request,
 			HttpResponse response,
@@ -143,7 +146,9 @@ public class ControlServlet extends ServiceServlet {
 		});
 	}
 
-	@Path(methods = { "GET" }, pattern = "^/build/([^/]+)$")
+	@Path(
+			methods = { "GET" },
+			pattern = "^/build/([^/]+)$")
 	protected void doBuildGet(
 			HttpRequest request,
 			HttpResponse response,
@@ -256,7 +261,9 @@ public class ControlServlet extends ServiceServlet {
 		}
 	}
 
-	@Path(methods = { "POST" }, pattern = "^/build/([^/]+)/([^/]+)$")
+	@Path(
+			methods = { "POST" },
+			pattern = "^/build/([^/]+)/([^/]+)$")
 	protected void doBuildPost(
 			HttpRequest request,
 			HttpResponse response,
@@ -299,7 +306,9 @@ public class ControlServlet extends ServiceServlet {
 				database.getBuildServers(name));
 	}
 
-	@Path(methods = { "GET" }, pattern = "^/bundled/([^/]+)$")
+	@Path(
+			methods = { "GET" },
+			pattern = "^/bundled/([^/]+)$")
 	protected void doBundledGet(
 			HttpRequest request,
 			HttpResponse response,
@@ -315,6 +324,33 @@ public class ControlServlet extends ServiceServlet {
 			return;
 		}
 		response.sendResponse("application/java-archive", file);
+	}
+
+	@Path(
+			methods = { "GET" },
+			pattern = "^/configure/systemd/distant-([^\\.]+)\\.service$")
+	protected void doCongfigureServiceGet(
+			HttpRequest request,
+			HttpResponse response,
+			String name)
+					throws ServletException, IOException {
+		String url;
+		StringBuilder builder;
+
+		url = request.getRequestURL().toString();
+		url = url.substring(0, url.length() - request.getPathInfo().length());
+		builder = new StringBuilder();
+		try (BufferedReader reader =
+				new BufferedReader(
+						new InputStreamReader(
+								this.getClass().getResourceAsStream(
+										"ControlServlet.systemd")))) {
+			String line;
+
+			while ((line = reader.readLine()) != null)
+				builder.append(String.format(line, url, name)).append('\n');
+		}
+		response.sendResponse("text/plain", builder.toString());
 	}
 
 	@Override

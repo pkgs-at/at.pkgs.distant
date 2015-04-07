@@ -1,0 +1,15 @@
+[Unit]
+Description=Distant Service for %2$s
+After=network.target
+
+[Service]
+Type=simple
+User=distant
+Group=distant
+WorkingDirectory=/home/distant/%2$s
+ExecStart=/usr/bin/java -jar /usr/local/share/java/distant.jar %1$s %2$s
+Restart=always
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
