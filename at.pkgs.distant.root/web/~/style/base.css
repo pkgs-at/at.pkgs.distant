@@ -6,7 +6,7 @@ html {
 body {
 	margin-bottom: 80px;
 }
-body.modal-open{
+body.modal-open {
 	padding-left: 16px;
 }
 #base_container {

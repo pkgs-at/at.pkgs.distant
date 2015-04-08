@@ -1,7 +1,7 @@
 html {
 	overflow-y: scroll;
 }
-body.modal-open{
+body.modal-open {
 	padding-left: 16px;
 }
 #base_container {
