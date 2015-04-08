@@ -6,8 +6,15 @@
 [? body_main { ??]
 [? base ??]
 <h4>dist'antについて</h4>
-<p>dist'antはデプロイツールです。</p>
-<p>WebDavなどを使用してアップロードしたファイルと後述のビルドファイルを一緒にデプロイ対象へコピーし、実行結果を記録します。</p>
-<p>各デプロイ対象では、ファイルコピーやリネームなどを実行するために組込みの<a href="http://ant.apache.org/">Apache Ant</a>を使用します。</p>
+<p>dist'antはシンプルなデプロイツールです。</p>
+<p>WebDavなどを使用して事前に更新配布サーバへアップロードしたファイルとビルドファイルを、デプロイ画面からの指示により、各デプロイ対象サーバへ一括転送し、実行結果を記録します。</p>
+<p>デプロイ対象サーバでは、ファイルのコピーや移動を実行するためにデプロイ実行バイナリに組込みの<a href="http://ant.apache.org/">Apache Ant</a>を実行します。</p>
+<div class="alert alert-info text-center">準備中</div>
+<h4>ダウンロード</h4>
+<p>更新配布サーバ: <a href="download/at.pkgs.distant.site.war" target="_blank">at.pkgs.distant.site.war</a></p>
+<p>ソースコードリポジトリ: <a href="https://github.com/pkgs-at/at.pkgs.distant" target="_blank">github</a></p>
+<p>デプロイ実行バイナリは更新配布サーバからダウンロードします。</p>
+<h4>ライセンス</h4>
+<p><a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License, Version 2.0</a></p>
 [? } body_main ??]
 [% } %%]

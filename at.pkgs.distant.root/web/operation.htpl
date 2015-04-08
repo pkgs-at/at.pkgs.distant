@@ -1,0 +1,13 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: '操作方法',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4>ダッシュボード</h4>
+<div class="alert alert-info text-center">準備中</div>
+<h4>ビルド結果画面</h4>
+<div class="alert alert-info text-center">準備中</div>
+[? } body_main ??]
+[% } %%]

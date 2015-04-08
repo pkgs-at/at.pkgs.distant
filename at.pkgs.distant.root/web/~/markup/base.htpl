@@ -56,6 +56,7 @@
           <li><a href="install.htpl">インストール</a></li>
           <li><a href="configure.htpl">設定</a></li>
           <li><a href="operation.htpl">操作方法</a></li>
+          <li><a href="loadmap.htpl">ロードマップ</a></li>
         </ul>
       </div>
       <script>
@@ -70,7 +71,7 @@
 	$fixed.css('position', 'relative');
 	update = function() {
 		timeout = null;
-		$fixed.animate({ 'top': $root.scrollTop() }, 200);
+		$fixed.animate({ 'top': Math.max($root.scrollTop() - 60, 0) }, 200);
 	};
 	update();
 	$root.scroll(function() {
@@ -84,9 +85,9 @@
         <h3 style="margin-top:10px;">[= title =]</h3>
 [? } body_main ??]
       </div>
-      <div id="base_footer" class="col-xs-12" style="margin-top:40px;">
-        <address class="text-center">Copyright &copy; 2015 <a href="https://architector.co.jp/" target="_blank">Architector Inc.</a> All Rights Reserved.</address></address>
-      </div>
+    </div>
+    <div id="base_footer">
+      <address class="text-center">Copyright &copy; 2015 <a href="https://architector.co.jp/" target="_blank">Architector Inc.</a> All Rights Reserved.</address>
     </div>
 [? } body ??]
   </body>

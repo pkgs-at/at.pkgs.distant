@@ -1,0 +1,11 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: '設定',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4>全体の構成</h4>
+<div class="alert alert-info text-center">準備中</div>
+[? } body_main ??]
+[% } %%]

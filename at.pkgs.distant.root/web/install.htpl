@@ -1,0 +1,245 @@
+[% /* <meta charset="UTF-8" /> */ %%]
+[% with ({
+	title: 'インストール',
+}) { %%]
+[? extends ~/markup/base.htpl ??]
+[? body_main { ??]
+[? base ??]
+<h4><a data-toggle="collapse" href="#distributor_base">更新配布サーバの基本構成...</a><br /><small>Java SE8、Apache Web Server(WebDav、Proxy)、Tomcatのインストール</small></h4>
+<div class="collapse" id="distributor_base">
+  <p>ここではデモサイトの構成時を例に、公式パッケージでJava SE 8が提供されているCentOS 7 (1503)に更新配布サーバを構成するサンプルを提示します。</p>
+  <p>また、配布する更新データはWebDavでアップロードするものとし、BASIC認証とWebDavサーバを提供するApache Web Serverの構成も併せて行います。</p>
+  <p>SELinuxを有効にする場合は下記のパッケージをインストールしておいてください。</p>
+<pre class="console">
+# yum install policycoreutils-python
+</pre>
+  <p>Java SE 8(SDK)をインストールします。</p>
+  <p>公式パッケージのTomcatを使用する場合は依存関係の都合でopenjdk-1.7.0-openjdk-develのインストールも必要になります。</p>
+  <p><code>alternatives</code>の設定では<code>java-1.8.0</code>を選択します。</p>
+<pre class="console">
+$ sudo yum install java-1.7.0-openjdk-devel
+$ sudo yum install java-1.8.0-openjdk-devel
+$ sudo alternatives --config jre_openjdk
+$ sudo alternatives --config java
+$ sudo alternatives --config java_sdk_openjdk
+$ sudo alternatives --config javac
+</pre>
+  <p>続いてTomcatをインストールします。</p>
+  <p>ここで必要に応じて<code>tcp:8080</code>ポート(BASIC認証なし)のファイアウォール設定(ローカルネットワークからのアクセス許可等)を行ってください。</p>
+<pre class="console">
+$ sudo yum install tomcat
+$ sudo systemctl enable tomcat
+$ sudo systemctl start tomcat
+</pre>
+  <p>Apache Web Serverをインストールします。</p>
+  <p>下記の例では<code>tcp:80</code>ポートを許可していますが、実運用環境ではSSL証明書の設定や<code>80</code>ポートの代わりに<code>tcp:443</code>ポートの許可が必要です。</p>
+<pre class="console">
+$ sudo yum install httpd
+$ sudo systemctl enable httpd
+$ sudo systemctl start httpd
+$ sudo firewall-cmd --add-service=http --permanent
+$ sudo firewall-cmd --reload
+</pre>
+  <p>Basic認証用のパスワードファイルを用意します。</p>
+<pre class="console">
+$ sudo htpasswd -c /etc/httpd/conf.d/tomcat.distant.htpasswd guest
+</pre>
+  <p>WebDav用の公開ディレクトリを用意し、権限の設定を行います。</p>
+<pre class="console">
+$ sudo mkdir -p /var/www/demo/webdav
+$ sudo chown apache:apache /var/www/demo/webdav
+</pre>
+  <p>SELinuxを有効にする場合はWebDav用ディレクトリへの書込み等を許可しておきます。</p>
+<pre class="console">
+$ sudo semanage fcontext -a -t public_content_rw_t '/var/www/demo/webdav(/.*)?'
+$ sudo restorecon -R -v /var/www/demo
+$ sudo setsebool -P allow_httpd_anon_write on
+</pre>
+  <p>Apache Web ServerにVirtualHostの設定を行います。</p>
+<pre class="console">
+$ sudo vi /etc/httpd/conf.d/tomcat.conf
+</pre>
+  <p>デモサイトなので特定のユーザ以外には更新できないように設定(<code>&lt;LimitExcept&gt;</code>)を追加しています。</p>
+<pre>
+[= '\
+<VirtualHost *:80>\n\
+    ServerName distant.pkgs.at\n\
+\n\
+    ProxyRequests Off\n\
+    ProxyPass / ajp://localhost:8009/\n\
+    ProxyPassReverse / ajp://localhost:8009/\n\
+\n\
+    <IfModule mod_dav.c>\n\
+        DavLockDB "/tmp/DavLock"\n\
+    </IfModule>\n\
+\n\
+    <Location /demo>\n\
+        AuthType Basic\n\
+        AuthName "Dist\'ant Demo Site"\n\
+        AuthUserFile /etc/httpd/conf.d/tomcat.distant.htpasswd\n\
+\n\
+        Require valid-user\n\
+    </Location>\n\
+    <IfModule mod_dav.c>\n\
+        Alias /demo/webdav "/var/www/demo/webdav"\n\
+        <Location /demo/webdav>\n\
+            ProxyPass !\n\
+            DAV On\n\
+            AllowOverride None\n\
+            Options None\n\
+            <LimitExcept GET HEAD OPTIONS PROPFIND>\n\
+                Require user ********\n\
+            </LimitExcept>\n\
+        </Location>\n\
+    </IfModule>\n\
+</VirtualHost>\n\
+' ==]
+</pre>
+  <p>VirtualHostの設定を行ったのでApache Web Serverをリスタートします。</p>
+<pre class="console">
+$ sudo systemctl restart httpd
+</pre>
+  <p>以上で更新配布サーバの基本構成が完了しました。</p>
+</div>
+<h4><a data-toggle="collapse" href="#distributor_install">更新配布サーバへのインストール...</a></h4>
+<div class="collapse" id="distributor_install">
+  <p>更新データディレクトリを作成し、権限を設定します。</p>
+<pre class="console">
+$ sudo mkdir -p /var/local/distant/demo
+$ sudo chown tomcat:tomcat /var/local/distant/demo
+</pre>
+  <p>設定ファイルのルートディレクトリを作成し管理者(例では<code>sysadm</code>)を所有者にしておきます(任意)。</p>
+<pre class="console">
+$ sudo mkdir /usr/local/etc/distant
+$ sudo chown sysadm:sysadm /usr/local/etc/distant
+</pre>
+  <p>ビルドファイル(<code>build.xml</code>)の配置先を用意し、ビルドファイルを配置します。</p>
+  <p>ファイル名は<code><var>プロジェクト名</var>.xml</code>にします。</p>
+<pre class="console">
+$ mkdir /usr/local/etc/distant/demo.d
+$ vi /usr/local/etc/distant/demo.d/webapp.xml
+</pre>
+  <p>下記はデモサイトの<code>webapp</code>プロジェクトの例です。</p>
+<pre>
+[= '\
+<?xml version="1.0" encoding="UTF-8"?>\n\
+<project default="build">\n\
+	<target name="build">\n\
+		<echo>sleep 8 seconds</echo>\n\
+		<sleep seconds="8"/>\n\
+		<echo>done</echo>\n\
+	</target>\n\
+	<target name="ok-test">\n\
+		<echo>it will be succeed</echo>\n\
+	</target>\n\
+	<target name="ng-test">\n\
+		<echo>it will be aborted</echo>\n\
+		<fail />\n\
+	</target>\n\
+</project>\n\
+' ==]
+</pre>
+  <p>dist'ant設定ファイルを設置します。</p>
+<pre class="console">
+$ vi /usr/local/etc/distant/demo.xml
+</pre>
+  <p>下記はデモサイトの例です。</p>
+  <p>詳細は<a href="configure.htpl">設定</a>をご覧ください。</p>
+<pre>
+[= '\
+<?xml version="1.0" encoding="UTF-8"?>\n\
+<Site\n\
+		build="./demo.d"\n\
+		data="/var/local/distant/demo"\n\
+		resource="/var/www/demo/webdav">\n\
+	<Cluster name="prod.web">\n\
+		<Server name="web0" />\n\
+		<Server name="web1" />\n\
+	</Cluster>\n\
+	<Cluster name="test.web">\n\
+		<Server name="webx" />\n\
+		<Server name="weby" />\n\
+	</Cluster>\n\
+	<Project name="webapp">\n\
+		<Region name="test">\n\
+			<Server cluster="test.web" />\n\
+		</Region>\n\
+		<Region name="prod">\n\
+			<Server cluster="prod.web" />\n\
+		</Region>\n\
+	</Project>\n\
+	<Project name="batch">\n\
+		<Region name="test">\n\
+			<Server name="jobx" />\n\
+		</Region>\n\
+		<Region name="prod">\n\
+			<Server name="job0" />\n\
+		</Region>\n\
+	</Project>\n\
+	<Mail\n\
+			hostname="smtp.gmail.com"\n\
+			port="465"\n\
+			secure="true"\n\
+			username="********@gmail.com"\n\
+			password="********">\n\
+		<From address="********@gmail.com" />\n\
+		<ReplyTo address="********@architector.jp" />\n\
+		<To address="********@architector.jp" />\n\
+	</Mail>\n\
+</Site>\n\
+' ==]
+</pre>
+  <p>続いてTomcatの起動オプションにdist'antが読込む設定ファイルのパスを設定します。</p>
+<pre class="console">
+$ sudo vi /etc/sysconfig/tomcat
+</pre>
+  <p><code>-Dat.pkgs.distant.site:<var>コンテキストパス</var>=<var>設定ファイルパス</var></code>の書式になります。</p>
+  <p><code>-Dat.pkgs.distant.site:=</code>はルートコンテキスト(/)、<code>-Dat.pkgs.distant.site=</code>はデフォルト値になります。</p>
+  <p>他の<code>CATALINA_OPTS</code>を渡す場合や複数設定する場合(空白区切り)は、行末に<code>\</code>を使用して行を継続できます。</p>
+<pre>
+CATALINA_OPTS= \
+        -Dat.pkgs.distant.site:/demo=/usr/local/etc/distant/demo.xml
+</pre>
+  <p>上記の設定を反映するためにTomcatをリスタートします。</p>
+<pre class="console">
+$ sudo systemctl restart tomcat
+</pre>
+  <p>最後に更新配布サーバのバイナリのダウンロードしwebappsディレクトリへ配備します。</p>
+<pre class="console">
+$ sudo mkdir /usr/local/share/java
+$ (cd /usr/local/share/java && \
+   sudo curl -L -O http://distant.pkgs.at/download/at.pkgs.distant.site.war)
+$ sudo ln -s /usr/local/share/java/at.pkgs.distant.site.war \
+             /var/lib/tomcat/webapps/demo.war
+</pre>
+  <p>以上で更新配布サーバへのインストールが完了しました。</p>
+</div>
+<h4><a data-toggle="collapse" href="#deployee_install">デプロイ対象サーバへのインストール...</a></h4>
+<div class="collapse" id="deployee_install">
+  <p>ここではJava SE 6移行のJava実行環境(JRE)が構成済みという前提です。</p>
+  <p>また、サービス設定はsystemdを想定しています。</p>
+  <p>残念ながらrcスクリプト等は現時点では用意されていないため、systemd以外の環境では別途ご用意いただく必要があります(<strong class="text-warning">ビルドが終了するとリソースを開放する目的でプロセスが終了するため、終了ステータスが<code>0</code>であれば再起動するようにスクリプト側でループ処理が必要です</strong>)。</p>
+  <p>まず、適切なディレクトリに更新配布サーバからデプロイ実行バイナリをダウンロードします。</p>
+  <p>以降の<code>http://localhost:8080/demo/</code>(更新配布サーバのURL)は環境に合わせて読み替えてください。</p>
+<pre class="console">
+$ sudo mkdir /usr/local/share/java
+$ (cd /usr/local/share/java && \
+   sudo curl -L -O <var>http://localhost:8080/demo/</var>control/bundled/at.pkgs.distant.jar)
+</pre>
+  <p>デプロイユーザとデプロイ実行バイナリのサービス設定を行います。</p>
+  <p>下記の例ではデプロイ実行用ユーザ<code>distant</code>、サーバ名<code>web0</code>としています。</p>
+<pre class="console">
+$ sudo adduser --create-home <var>distant</var>
+$ sudo su - <var>distant</var>
+$ mkdir ~/<var>web0</var>
+$ exit
+$ (cd /etc/systemd/system/ && \
+   sudo curl -L -O \
+   <var>http://localhost:8080/demo/</var>control/configure/systemd/distant-<var>web0</var>.service)
+$ sudo systemctl enable distant-<var>web0</var>
+$ sudo systemctl start distant-<var>web0</var>
+</pre>
+  <p>以上でデプロイ対象サーバの基本構成が完了しました。</p>
+</div>
+[? } body_main ??]
+[% } %%]

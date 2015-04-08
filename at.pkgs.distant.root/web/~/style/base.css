@@ -1,5 +1,10 @@
 html {
+	position: relative;
 	overflow-y: scroll;
+	min-height: 100%;
+}
+body {
+	margin-bottom: 80px;
 }
 body.modal-open{
 	padding-left: 16px;
@@ -16,4 +21,17 @@ body.modal-open{
 	right:0px;
 	bottom: 0px;
 	margin: 0px;
+}
+#base_footer {
+	position: absolute;
+	bottom: 0px;
+	width: 100%;
+	height: 80px;
+}
+#base_footer address {
+	margin-top: 40px;
+}
+pre.console {
+	color: #FFF;
+	background-color: #000;
 }
