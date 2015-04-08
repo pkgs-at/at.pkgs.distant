@@ -239,7 +239,7 @@ $ (cd /etc/systemd/system/ && \
 $ sudo systemctl enable distant-<var>web0</var>
 $ sudo systemctl start distant-<var>web0</var>
 </pre>
-  <p>以上でデプロイ対象サーバの基本構成が完了しました。</p>
+  <p>以上でデプロイ対象サーバへのインストールが完了しました。</p>
 </div>
 [? } body_main ??]
 [% } %%]
