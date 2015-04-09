@@ -328,8 +328,35 @@ public class ControlServlet extends ServiceServlet {
 
 	@Path(
 			methods = { "GET" },
+			pattern = "^/configure/upstart/distant-([^\\.]+)\\.conf$")
+	protected void doCongfigureUpstartGet(
+			HttpRequest request,
+			HttpResponse response,
+			String name)
+					throws ServletException, IOException {
+		String url;
+		StringBuilder builder;
+
+		url = request.getRequestURL().toString();
+		url = url.substring(0, url.length() - request.getPathInfo().length());
+		builder = new StringBuilder();
+		try (BufferedReader reader =
+				new BufferedReader(
+						new InputStreamReader(
+								this.getClass().getResourceAsStream(
+										"ControlServlet.upstart")))) {
+			String line;
+
+			while ((line = reader.readLine()) != null)
+				builder.append(String.format(line, url, name)).append('\n');
+		}
+		response.sendResponse("text/plain", builder.toString());
+	}
+
+	@Path(
+			methods = { "GET" },
 			pattern = "^/configure/systemd/distant-([^\\.]+)\\.service$")
-	protected void doCongfigureServiceGet(
+	protected void doCongfigureSystemdGet(
 			HttpRequest request,
 			HttpResponse response,
 			String name)
