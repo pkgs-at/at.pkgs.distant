@@ -185,6 +185,10 @@ public class DefaultHandler extends SiteHandler {
 		action = this.getRequest().getParameter("action");
 		if (action == null) action = "default";
 		switch (action) {
+		case "deauthenticate" :
+			this.getResponse().sendError(HttpResponse.SC_UNAUTHORIZED);
+			this.finish();
+			return;
 		case "refresh" :
 			this.getResponse().setContentType("application/xml");
 			JAXB.marshal(this.model(), this.getResponse().getOutputStream());
