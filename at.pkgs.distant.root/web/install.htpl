@@ -5,7 +5,10 @@
 [? extends ~/markup/base.htpl ??]
 [? body_main { ??]
 [? base ??]
-<h4><a data-toggle="collapse" href="#distributor_base">更新配布サーバの基本構成...</a><br /><small>Java SE8、Apache Web Server(WebDav、Proxy)、Tomcatのインストール</small></h4>
+<h4>
+  <a data-toggle="collapse" href="#distributor_base">更新配布サーバの基本構成...</a><br />
+  <small>Java SE8、Apache Web Server(WebDav、Proxy)、Tomcatのインストール</small>
+</h4>
 <div class="collapse" id="distributor_base">
   <p>ここではデモサイトの構成時を例に、公式パッケージでJava SE 8が提供されているCentOS 7 (1503)に更新配布サーバを構成するサンプルを提示します。</p>
   <p>また、配布する更新データはWebDavでアップロードするものとし、BASIC認証とWebDavサーバを提供するApache Web Serverの構成も併せて行います。</p>
@@ -101,7 +104,9 @@ $ sudo systemctl restart httpd
 </pre>
   <p>以上で更新配布サーバの基本構成が完了しました。</p>
 </div>
-<h4><a data-toggle="collapse" href="#distributor_install">更新配布サーバへのインストール...</a></h4>
+<h4>
+  <a data-toggle="collapse" href="#distributor_install">更新配布サーバへのインストール...</a>
+</h4>
 <div class="collapse" id="distributor_install">
   <p>更新データディレクトリを作成し、権限を設定します。</p>
 <pre class="console">
@@ -214,11 +219,13 @@ $ sudo ln -s /usr/local/share/java/at.pkgs.distant.site.war \
 </pre>
   <p>以上で更新配布サーバへのインストールが完了しました。</p>
 </div>
-<h4><a data-toggle="collapse" href="#deployee_install">デプロイ対象サーバへのインストール...</a></h4>
-<div class="collapse" id="deployee_install">
-  <p>ここではJava SE 6移行のJava実行環境(JRE)が構成済みという前提です。</p>
-  <p>また、サービス設定はsystemdを想定しています。</p>
-  <p>残念ながらrcスクリプト等は現時点では用意されていないため、systemd以外の環境では別途ご用意いただく必要があります(<strong class="text-warning">ビルドが終了するとリソースを開放する目的でプロセスが終了するため、終了ステータスが<code>0</code>であれば再起動するようにスクリプト側でループ処理が必要です</strong>)。</p>
+<h4>
+  <a data-toggle="collapse" href="#deployee_systemd">デプロイ対象サーバへのインストール(systemd)...</a><br />
+  <small>CentOS 7など</small>
+</h4>
+<div class="collapse" id="deployee_systemd">
+  <p>ここではJava SE 6以降のJava実行環境(JRE)が構成済みという前提です。</p>
+  <p>サービス起動にはsystemdを利用します。</p>
   <p>まず、適切なディレクトリに更新配布サーバからデプロイ実行バイナリをダウンロードします。</p>
   <p>以降の<code>http://localhost:8080/demo/</code>(更新配布サーバのURL)は環境に合わせて読み替えてください。</p>
 <pre class="console">
@@ -228,6 +235,7 @@ $ (cd /usr/local/share/java && \
 </pre>
   <p>デプロイユーザとデプロイ実行バイナリのサービス設定を行います。</p>
   <p>下記の例ではデプロイ実行用ユーザ<code>distant</code>、サーバ名<code>web0</code>としています。</p>
+  <p>生成される設定ファイルのサンプルは<a href="http://distant.pkgs.at/demo/control/configure/systemd/distant-web0.service" target="_blank">こちら</a>です。</p>
 <pre class="console">
 $ sudo adduser --create-home <var>distant</var>
 $ sudo su - <var>distant</var>
@@ -240,6 +248,42 @@ $ sudo systemctl enable distant-<var>web0</var>
 $ sudo systemctl start distant-<var>web0</var>
 </pre>
   <p>以上でデプロイ対象サーバへのインストールが完了しました。</p>
+</div>
+<h4>
+  <a data-toggle="collapse" href="#deployee_upstart">デプロイ対象サーバへのインストール(upstart)...</a><br />
+  <small>CentOS 6など</small>
+</h4>
+<div class="collapse" id="deployee_upstart">
+  <p>ここではJava SE 6以降のJava実行環境(JRE)が構成済みという前提です。</p>
+  <p>サービス起動にはupstartを利用します。</p>
+  <p>まず、適切なディレクトリに更新配布サーバからデプロイ実行バイナリをダウンロードします。</p>
+  <p>以降の<code>http://localhost:8080/demo/</code>(更新配布サーバのURL)は環境に合わせて読み替えてください。</p>
+<pre class="console">
+$ sudo mkdir /usr/local/share/java
+$ (cd /usr/local/share/java && \
+   sudo curl -L -O <var>http://localhost:8080/demo/</var>control/bundled/at.pkgs.distant.jar)
+</pre>
+  <p>デプロイユーザとデプロイ実行バイナリのサービス設定を行います。</p>
+  <p>下記の例ではデプロイ実行用ユーザ<code>distant</code>、サーバ名<code>web0</code>としています。</p>
+  <p>生成される設定ファイルのサンプルは<a href="http://distant.pkgs.at/demo/control/configure/upstart/distant-web0.conf" target="_blank">こちら</a>です。</p>
+<pre class="console">
+$ sudo adduser --create-home <var>distant</var>
+$ sudo su - <var>distant</var>
+$ mkdir ~/<var>web0</var>
+$ exit
+$ (cd /etc/init/ && \
+   sudo curl -L -O \
+   <var>http://localhost:8080/demo/</var>control/configure/upstart/distant-<var>web0</var>.conf)
+$ sudo initctl start distant-<var>web0</var>
+</pre>
+  <p>以上でデプロイ対象サーバへのインストールが完了しました。</p>
+</div>
+<h4>
+  <a data-toggle="collapse" href="#deployee_other">デプロイ対象サーバへのインストール(その他)...</a><br />
+</h4>
+<div class="collapse" id="deployee_other">
+  <p>残念ながらsystemdまたはupstart以外の環境では、別途サービス起動スクリプトをご用意いただく必要があります。</p>
+  <p><strong class="text-warning">デプロイ実行バイナリは、ビルドが終了するとリソースを開放する目的でプロセスが終了するため、終了ステータスが<code>0</code>であれば再起動するようにスクリプト側でループ処理が必要です。</strong></p>
 </div>
 [? } body_main ??]
 [% } %%]

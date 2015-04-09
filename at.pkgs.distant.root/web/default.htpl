@@ -7,18 +7,22 @@
 [? base ??]
 <h4>dist'antについて</h4>
 <p>dist'antはシンプルなデプロイツールです。</p>
-<p>WebDavなどを使用して事前に更新配布サーバへアップロードしたファイルとビルドファイルを、デプロイ画面からの指示により、各デプロイ対象サーバへ一括転送し、実行結果を記録します。</p>
-<p>デプロイ対象サーバでは、ファイルのコピーや移動を実行するためにデプロイ実行バイナリに組込みの<a href="http://ant.apache.org/">Apache Ant</a>を実行します。</p>
+<p>WebDavなどを使用して事前に更新配布サーバへアップロードしたファイルとビルドファイルを、デプロイ画面からの指示により、各デプロイ対象サーバへ一括転送し、配布物と共に実行結果を記録します。</p>
+<p>デプロイ対象サーバでは、ファイルのコピーや移動を実行するために、デプロイ実行バイナリに組み込まれた<a href="http://ant.apache.org/">Apache Ant</a>を実行します。</p>
+<p>大きな特徴として、デプロイ対象サーバとの通信に使用するネットワーク経路は、デプロイ対象サーバから更新配布サーバへのhttp通信のみとなっています。</p>
+<p>このためデプロイ対象サーバのセットアップや設定変更が最小限となります。</p>
+<p>パスフレーズなしの秘密鍵を使用する必要もありません。</p>
+<p>デプロイ開始の検知にはロングポーリングを使用しているため、デプロイ開始のタイムラグも最小限となっています。</p>
 <h4>構成</h4>
 <div class="alert alert-info text-center">準備中</div>
 <h4>デモサイト</h4>
-<ul class="list-inline">
+<ul>
   <li><a href="http://distant.pkgs.at/demo" target="_blank">デプロイ画面</a></li>
   <li>WebDav(閲覧のみ): http://distant.pkgs.at/demo/webdav/</li>
 </ul>
 <p>ユーザ<code>guest</code>、パスワード<code>guest</code>でログインしてください。</p>
 <h4>ダウンロード</h4>
-<ul class="list-inline">
+<ul>
   <li><a href="download/at.pkgs.distant.site.war" target="_blank">バイナリ</a></li>
   <li><a href="https://github.com/pkgs-at/at.pkgs.distant" target="_blank">ソースコードリポジトリ</a></li>
 </ul>
