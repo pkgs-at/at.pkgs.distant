@@ -1,6 +1,5 @@
 package at.pkgs.jna.posix;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -92,7 +91,7 @@ public class MacOSFileStat extends BaseNativeFileStat {
     }
 
     @Override
-    protected List getFieldOrder() {
+    protected List<?> getFieldOrder() {
         return Arrays.asList(new String[] { 
             "st_dev", "st_ino", "st_mode", "st_nlink", "st_uid",
             "st_gid", "st_rdev", "st_atime", "st_atimensec", "st_mtime",

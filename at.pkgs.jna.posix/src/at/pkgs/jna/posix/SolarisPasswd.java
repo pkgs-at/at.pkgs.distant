@@ -2,7 +2,6 @@
 package at.pkgs.jna.posix;
 
 import com.sun.jna.Pointer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -57,7 +56,7 @@ public class SolarisPasswd extends NativePasswd implements Passwd {
     }
 
     @Override
-    protected List getFieldOrder() {
+    protected List<?> getFieldOrder() {
         return Arrays.asList(new String[] { 
             "pw_name", "pw_passwd", "pw_uid", "pw_gid",
             "pw_age", "pw_comment", "pw_gecos", "pw_dir",

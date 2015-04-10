@@ -9,6 +9,7 @@ import java.util.Map;
 public class POSIXFactory {
     static final String LIBC = Platform.IS_LINUX ? "libc.so.6" : "c";
     static LibC libc = null;
+    @SuppressWarnings("serial")
     static final Map<Object, Object> defaultOptions = new HashMap<Object, Object>() {{
         put(Library.OPTION_TYPE_MAPPER, POSIXTypeMapper.INSTANCE);
     }};

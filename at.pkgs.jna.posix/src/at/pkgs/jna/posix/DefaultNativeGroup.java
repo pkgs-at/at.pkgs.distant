@@ -70,7 +70,7 @@ public final class DefaultNativeGroup extends NativeGroup implements Group {
     }
 
     @Override
-    protected List getFieldOrder() {
+    protected List<?> getFieldOrder() {
         return Arrays.asList(new String[] { 
             "gr_name", "gr_passwd", "gr_gid", "gr_mem"});
     }

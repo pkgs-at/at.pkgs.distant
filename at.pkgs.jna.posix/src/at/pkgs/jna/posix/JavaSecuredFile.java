@@ -40,6 +40,9 @@ import java.net.URI;
  *
  */
 public class JavaSecuredFile extends File {
+
+    private static final long serialVersionUID = 1L;
+
     public JavaSecuredFile(File parent, String child) {
         super(parent, child);
     }

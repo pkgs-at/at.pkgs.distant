@@ -1,6 +1,5 @@
 package at.pkgs.jna.posix;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -83,7 +82,7 @@ public class LinuxFileStat extends BaseNativeFileStat {
     }
 
     @Override
-    protected List getFieldOrder() {
+    protected List<?> getFieldOrder() {
         return Arrays.asList(new String[] {
             "st_dev", "__pad1", "st_ino", "st_mode", "st_nlink", "st_uid",
             "st_gid", "st_rdev", "__pad2", "st_size", "st_blksize",

@@ -33,7 +33,6 @@ package at.pkgs.jna.posix;
 
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -96,7 +95,7 @@ public class FreeBSDPasswd extends NativePasswd implements Passwd {
     }
 
     @Override
-    protected List getFieldOrder() {
+    protected List<?> getFieldOrder() {
         return Arrays.asList(new String[] { 
             "pw_name", "pw_passwd", "pw_uid", "pw_gid", "pw_change",
             "pw_class", "pw_gecos", "pw_dir", "pw_shell", "pw_expire",

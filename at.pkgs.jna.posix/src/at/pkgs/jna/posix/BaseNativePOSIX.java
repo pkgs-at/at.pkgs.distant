@@ -266,7 +266,7 @@ public abstract class BaseNativePOSIX implements POSIX {
     }
     
     public static abstract class PointerConverter implements FromNativeConverter {
-        public Class nativeType() {
+        public Class<?> nativeType() {
             return Pointer.class;
         }
     }

@@ -1,7 +1,6 @@
 package at.pkgs.jna.posix;
 
 import com.sun.jna.NativeLong;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,7 +17,7 @@ public final class DefaultNativeTimeval extends NativeTimeval {
     }
 
     @Override
-    protected List getFieldOrder() {
+    protected List<?> getFieldOrder() {
         return Arrays.asList(new String[] { 
             "tv_sec", "tv_usec"});
     }

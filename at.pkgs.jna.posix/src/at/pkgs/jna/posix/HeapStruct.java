@@ -35,7 +35,6 @@ import com.sun.jna.FromNativeContext;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Member;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -52,7 +51,9 @@ public class HeapStruct implements com.sun.jna.NativeMapped {
     private static final int LONG_SIZE = (Platform.isWindows() ? 4 : Pointer.SIZE) * 8;
     private static final int LONG_ALIGN = isSPARC ? 64 : LONG_SIZE;
     private static final long LONG_MASK = LONG_SIZE == 32 ? 0x7FFFFFFFL : 0x7FFFFFFFFFFFFFFFL;
+    @SuppressWarnings("unused")
     private static final int DOUBLE_ALIGN = isSPARC ? 64 : LONG_SIZE;
+    @SuppressWarnings("unused")
     private static final int FLOAT_ALIGN = isSPARC ? 64 : 32;
     private ByteBuffer buffer;
     private int size = 0;
@@ -65,7 +66,7 @@ public class HeapStruct implements com.sun.jna.NativeMapped {
         return getByteBuffer();
     }
 
-    public Class nativeType() {
+    public Class<?> nativeType() {
         return ByteBuffer.class;
     }
     protected final ByteBuffer getByteBuffer() {
@@ -276,6 +277,7 @@ public class HeapStruct implements com.sun.jna.NativeMapped {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected <T extends Field> T[] array(T[] array) {
         try {
             Class<?> arrayClass = array.getClass().getComponentType();

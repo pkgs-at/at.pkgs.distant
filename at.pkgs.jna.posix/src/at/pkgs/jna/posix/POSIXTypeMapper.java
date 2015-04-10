@@ -10,6 +10,7 @@ class POSIXTypeMapper implements TypeMapper {
     
     private POSIXTypeMapper() {}
     
+    @SuppressWarnings("rawtypes")
     public FromNativeConverter getFromNativeConverter(Class klazz) {
         if (Passwd.class.isAssignableFrom(klazz)) {
             if (Platform.IS_MAC) {
@@ -31,6 +32,7 @@ class POSIXTypeMapper implements TypeMapper {
         return null;
     }
     
+    @SuppressWarnings("rawtypes")
     public ToNativeConverter getToNativeConverter(Class klazz) {
         return null;
     }

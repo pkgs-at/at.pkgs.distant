@@ -14,6 +14,7 @@ public interface POSIXHandler {
     public enum WARNING_ID {
         DUMMY_VALUE_USED("DUMMY_VALUE_USED");
         
+        @SuppressWarnings("unused")
         private String messageID;
 
         WARNING_ID(String messageID) {
