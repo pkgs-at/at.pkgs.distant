@@ -282,8 +282,27 @@ $ sudo initctl start distant-<var>web0</var>
   <a data-toggle="collapse" href="#deployee_other">デプロイ対象サーバへのインストール(その他)...</a><br />
 </h4>
 <div class="collapse" id="deployee_other">
-  <p>残念ながらsystemdまたはupstart以外の環境では、別途サービス起動スクリプトをご用意いただく必要があります。</p>
-  <p><strong class="text-warning">デプロイ実行バイナリは、ビルドが終了するとリソースを開放する目的でプロセスが終了するため、終了ステータスが<code>0</code>であれば再起動するようにスクリプト側でループ処理が必要です。</strong></p>
+  <p>残念ながらその他の環境では、別途サービス起動スクリプトをご用意いただく必要があります。</p>
+  <p><strong class="text-danger">デプロイ実行バイナリは、ビルドが終了するとリソースを開放する目的でプロセスが終了するため、終了ステータスが<code>0</code>であれば再起動するようにスクリプト側でループ処理が必要です。</strong></p>
+  <p>ただし、Java SE 7以降であれば<code>--daemonize</code>オプションを使用することでデーモン化できます。</p>
+<pre class="console">
+$ java -jar at.pkgs.distant.jar
+Usage: java -jar at.pkgs.distant.jar [OPTION...] CONTROL_URL SERVER
+
+Options
+  --daemonize
+                       デーモンモードで起動(ワーカを起動し自動再起動する)
+                       Java SE 7以降で利用可能
+  --directory=DIRECTORY
+                       ワーキングディレクトリを指定
+  --group=GID_OR_GROUP_NAME
+                       プロセスの実行グループを指定
+  --user=UID_OR_USER_NAME
+                       プロセスの実行ユーザを指定
+  --pidfile=FILE
+                       指定されたファイルにプロセスIDを書込む
+</pre>
+  <p>上記のいくつかのオプションは一部環境(Windowsなど)では動作しません。</p>
 </div>
 [? } body_main ??]
 [% } %%]

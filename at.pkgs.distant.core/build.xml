@@ -6,7 +6,7 @@
 	<!-- directories -->
 	<property name="bindir" value="./bin"/>
 	<property name="tmpdir" value="./tmp"/>
-	<property name="libdir" value="../at.pkgs.distant/src/at/pkgs/distant/ant"/>
+	<property name="libdir" value="../at.pkgs.distant/src/at/pkgs/distant/bundled"/>
 	<!-- others -->
 	<property name="javacexcludes" value="**/.svn"/>
 	<property name="javacdebug" value="true"/>
