@@ -24,7 +24,7 @@
 		<copy todir="${tmpdir}">
 			<fileset dir="./src" excludes="${javacexcludes},**/*.java"/>
 		</copy>
-		<jar destfile="${libdir}/${name}-${version}.jar">
+		<jar destfile="${libdir}/${name}.jar">
 			<fileset dir="${tmpdir}"/>
 		</jar>
 		<delete dir="${tmpdir}"/>

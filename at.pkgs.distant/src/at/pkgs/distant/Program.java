@@ -38,6 +38,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileLock;
 import java.net.URLDecoder;
 import java.net.HttpURLConnection;
 import at.pkgs.fatjar.LocalContext;
@@ -460,7 +461,10 @@ public class Program implements Runnable {
 		for (Option option : Option.values()) option.print(out);
 	}
 
-	public static void daemonize(String control, String server) {
+	public static int daemon(
+			String control,
+			String server)
+					throws IOException {
 		File java;
 		ProcessBuilder builder;
 
@@ -497,29 +501,49 @@ public class Program implements Runnable {
 			}
 
 		});
-		try {
-			do {
-				synchronized (Program.class) {
-					if (Program.disposing) return;
-					Program.worker = builder.start();
-				}
-				while (true) {
-					try {
-						Program.worker.waitFor();
-					}
-					catch (InterruptedException ignored) {
-						continue;
-					}
-					break;
-				}
+		do {
+			synchronized (Program.class) {
+				if (Program.disposing) return 0;
+				Program.worker = builder.start();
 			}
-			while (Program.worker.exitValue() == 0);
-			System.exit(Program.worker.exitValue());
+			while (true) {
+				try {
+					Program.worker.waitFor();
+				}
+				catch (InterruptedException ignored) {
+					continue;
+				}
+				break;
+			}
 		}
-		catch (IOException cause) {
-			cause.printStackTrace(System.out);
-			System.exit(1);
+		while (Program.worker.exitValue() == 0);
+		return Program.worker.exitValue();
+	}
+
+	public static int worker(
+			String control,
+			String server)
+					throws IOException {
+		FileOutputStream output;
+		FileLock lock;
+
+		output = null;
+		lock = null;
+		try {
+			output = new FileOutputStream(".lock");
+			lock = output.getChannel().tryLock();
+			if (lock ==null) {
+				System.err.println(
+						"failed on acquire lock (maybe already running)");
+				return 1;
+			}
+			new Program(control, server).run();
 		}
+		finally {
+			if (lock != null) lock.release();
+			if (output != null) output.close();
+		}
+		return 0;
 	}
 
 	public static void main(String... arguments) {
@@ -566,11 +590,17 @@ public class Program implements Runnable {
 			else
 				Natives.setGroupAndUser(argument.get(Option.USER));
 		}
-		if (argument.has(Option.DAEMONIZE)) {
-			Program.daemonize(argument.get(0), argument.get(1));
+		try {
+			if (argument.has(Option.DAEMONIZE)) {
+				System.exit(Program.daemon(argument.get(0), argument.get(1)));
+			}
+			else {
+				System.exit(Program.worker(argument.get(0), argument.get(1)));
+			}
 		}
-		else {
-			new Program(argument.get(0), argument.get(1)).run();
+		catch (IOException cause) {
+			cause.printStackTrace(System.out);
+			System.exit(1);
 		}
 	}
 
