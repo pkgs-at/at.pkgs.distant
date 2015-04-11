@@ -1,3 +1,6 @@
+build.*
+/at.pkgs.distant.site/etc
+
 #################
 ## Eclipse
 #################
