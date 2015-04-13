@@ -282,11 +282,18 @@ $ sudo initctl start distant-<var>web0</var>
   <a data-toggle="collapse" href="#deployee_other">デプロイ対象サーバへのインストール(その他)...</a><br />
 </h4>
 <div class="collapse" id="deployee_other">
-  <p>残念ながらその他の環境では、別途サービス起動スクリプトをご用意いただく必要があります。</p>
+  <p>ここではJava SE 6以降のJava実行環境(JRE)が構成済みという前提です。</p>
+  <p>まず、適切なディレクトリに更新配布サーバからデプロイ実行バイナリをダウンロードします。</p>
+  <p>以降の<code>http://localhost:8080/demo/</code>(更新配布サーバのURL)は環境に合わせて読み替えてください。</p>
+<pre class="console">
+$ sudo mkdir /usr/local/share/java
+$ (cd /usr/local/share/java && \
+   sudo curl -L -O <var>http://localhost:8080/demo/</var>control/bundled/at.pkgs.distant.jar)
+</pre>
   <p><strong class="text-danger">デプロイ実行バイナリは、ビルドが終了するとリソースを開放する目的でプロセスが終了するため、終了ステータスが<code>0</code>であれば再起動するようにスクリプト側でループ処理が必要です。</strong></p>
   <p>ただし、Java SE 7以降であれば<code>--daemonize</code>オプションを使用することでデーモン化できます。</p>
 <pre class="console">
-$ java -jar at.pkgs.distant.jar
+$ java -jar /usr/local/share/java/at.pkgs.distant.jar
 Usage: java -jar at.pkgs.distant.jar [OPTION...] CONTROL_URL SERVER
 
 Options
@@ -303,6 +310,21 @@ Options
                        指定されたファイルにプロセスIDを書込む
 </pre>
   <p>上記のいくつかのオプションは一部環境(Windowsなど)では動作しません。</p>
+  <p>いくつかのシステムでは下記のように利用できるrcスクリプトが使用できるかもしれません。</p>
+  <p>生成されるスクリプトのサンプルは<a href="http://distant.pkgs.at/demo/control/configure/rcscript/distant-web0" target="_blank">こちら</a>です。</p>
+<pre class="console">
+$ sudo mkdir /usr/local/share/java
+$ (cd /usr/local/share/java && \
+   sudo curl -L -O <var>http://localhost:8080/demo/</var>control/bundled/at.pkgs.distant.jar)
+$ sudo adduser --create-home <var>distant</var>
+$ sudo su - <var>distant</var>
+$ mkdir ~/<var>web0</var>
+$ exit
+$ (cd /etc/init.d/ && \
+   sudo curl -L -O \
+   <var>http://localhost:8080/demo/</var>control/configure/rcscript/distant-<var>web0</var>.conf)
+</pre>
+  <p>こちらを利用する場合はシステムに応じたスクリプトの書き換えや配置、パーミッションの設定などを行います。</p>
 </div>
 [? } body_main ??]
 [% } %%]

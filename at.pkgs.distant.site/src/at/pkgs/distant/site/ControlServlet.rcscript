@@ -1,0 +1,83 @@
+#!/bin/sh -
+
+# [ SysVinit with chkconfig ]
+#       Place this file into /etc/rc.d/init.d/distant-%2$s
+#       and run chkconfig --add distant-%2$s
+# chkconfig: 345 99 01
+# description: Distant Service for %2$s
+
+# [ FreeBSD ]
+#       Place this file into /usr/local/etc/rc.d/distant-%2$s
+#       and add 'distantt-%2$s_enable="YES"' in /etc/rc.conf.
+name=distant-%2$s
+
+CONTROL='%1$s'
+SERVER='%2$s'
+GROUP='distant'
+USER='distant'
+
+JAVA_PATH="/home/${USER}/bin:/usr/local/bin:/usr/bin:/bin"
+JAVA_OPTS=''
+JARFILE='/usr/local/share/java/at.pkgs.distant.jar'
+PIDFILE="/var/run/distant-${SERVER}"
+
+start() {
+	(
+		trap 'rm ${PIDFILE}; [ ${WORKER} -gt 0 ] && kill ${WORKER}' 0
+		ARGS="${JAVA_OPTS} -jar ${JARFILE}"
+		ARGS="${ARGS} --group=${GROUP}"
+		ARGS="${ARGS} --user=${USER}"
+		ARGS="${ARGS} ${CONTROL} ${SERVER}"
+		while :; do
+			PATH="${JAVA_PATH}" java ${ARGS} &
+			WORKER=$!
+			if wait "${WORKER}"; then
+				continue
+			else
+				WORKER=0
+				break
+			fi
+		done
+	) &
+	echo $! > ${PIDFILE}
+}
+
+stop() {
+	if [ -e "${PIDFILE}" ] && kill $(cat "${PIDFILE}"); then
+		return 0
+	else
+		return 1
+	fi
+}
+
+status() {
+	if [ -e "${PIDFILE}" ] && kill -0 $(cat "${PIDFILE}"); then
+		echo "distant-${SERVER} running."
+		return 0
+	else
+		echo "distant-${SERVER} stopped."
+		return 1
+	fi
+}
+
+case "$1" in
+start)
+	start
+	;;
+stop)
+	stop
+	;;
+status)
+	status
+	;;
+restart)
+	stop
+	start
+	;;
+*)
+	echo "Usage: $(basename $0) {start|stop|status|restart}"
+	exit 1
+	;;
+esac
+
+exit $?

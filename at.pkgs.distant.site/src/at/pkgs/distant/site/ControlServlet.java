@@ -326,12 +326,10 @@ public class ControlServlet extends ServiceServlet {
 		response.sendResponse("application/java-archive", file);
 	}
 
-	@Path(
-			methods = { "GET" },
-			pattern = "^/configure/upstart/distant-([^\\.]+)\\.conf$")
-	protected void doCongfigureUpstartGet(
+	protected void doConfigureTemplateGet(
 			HttpRequest request,
 			HttpResponse response,
+			String template,
 			String name)
 					throws ServletException, IOException {
 		String url;
@@ -344,7 +342,7 @@ public class ControlServlet extends ServiceServlet {
 				new BufferedReader(
 						new InputStreamReader(
 								this.getClass().getResourceAsStream(
-										"ControlServlet.upstart")))) {
+										"ControlServlet." + template)))) {
 			String line;
 
 			while ((line = reader.readLine()) != null)
@@ -355,29 +353,35 @@ public class ControlServlet extends ServiceServlet {
 
 	@Path(
 			methods = { "GET" },
-			pattern = "^/configure/systemd/distant-([^\\.]+)\\.service$")
-	protected void doCongfigureSystemdGet(
+			pattern = "^/configure/rcscript/distant-([^\\.]+)$")
+	protected void doConfigureRcscriptGet(
 			HttpRequest request,
 			HttpResponse response,
 			String name)
 					throws ServletException, IOException {
-		String url;
-		StringBuilder builder;
+		this.doConfigureTemplateGet(request, response, "rcscript", name);
+	}
 
-		url = request.getRequestURL().toString();
-		url = url.substring(0, url.length() - request.getPathInfo().length());
-		builder = new StringBuilder();
-		try (BufferedReader reader =
-				new BufferedReader(
-						new InputStreamReader(
-								this.getClass().getResourceAsStream(
-										"ControlServlet.systemd")))) {
-			String line;
+	@Path(
+			methods = { "GET" },
+			pattern = "^/configure/upstart/distant-([^\\.]+)\\.conf$")
+	protected void doConfigureUpstartGet(
+			HttpRequest request,
+			HttpResponse response,
+			String name)
+					throws ServletException, IOException {
+		this.doConfigureTemplateGet(request, response, "upstart", name);
+	}
 
-			while ((line = reader.readLine()) != null)
-				builder.append(String.format(line, url, name)).append('\n');
-		}
-		response.sendResponse("text/plain", builder.toString());
+	@Path(
+			methods = { "GET" },
+			pattern = "^/configure/systemd/distant-([^\\.]+)\\.service$")
+	protected void doConfigureSystemdGet(
+			HttpRequest request,
+			HttpResponse response,
+			String name)
+					throws ServletException, IOException {
+		this.doConfigureTemplateGet(request, response, "systemd", name);
 	}
 
 	@Override
