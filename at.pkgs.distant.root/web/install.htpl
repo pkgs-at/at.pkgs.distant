@@ -313,9 +313,6 @@ Options
   <p>いくつかのシステムでは下記のように利用できるrcスクリプトが使用できるかもしれません。</p>
   <p>生成されるスクリプトのサンプルは<a href="http://distant.pkgs.at/demo/control/configure/rcscript/distant-web0" target="_blank">こちら</a>です。</p>
 <pre class="console">
-$ sudo mkdir /usr/local/share/java
-$ (cd /usr/local/share/java && \
-   sudo curl -L -O <var>http://localhost:8080/demo/</var>control/bundled/at.pkgs.distant.jar)
 $ sudo adduser --create-home <var>distant</var>
 $ sudo su - <var>distant</var>
 $ mkdir ~/<var>web0</var>
