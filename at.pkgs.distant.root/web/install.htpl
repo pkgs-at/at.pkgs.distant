@@ -320,7 +320,7 @@ $ sudo adduser --create-home <var>distant</var>
 $ sudo su - <var>distant</var>
 $ mkdir ~/<var>web0</var>
 $ exit
-$ (cd /etc/init.d/ && \
+$ (cd /etc/rc.d/init.d/ && \
    sudo curl -L -O \
    <var>http://localhost:8080/demo/</var>control/configure/rcscript/distant-<var>web0</var>.conf)
 </pre>

@@ -15,6 +15,7 @@ CONTROL='%1$s'
 SERVER='%2$s'
 GROUP='distant'
 USER='distant'
+DIRECTORY="/home/${USER}/${SERVER}"
 
 JAVA_PATH="/home/${USER}/bin:/usr/local/bin:/usr/bin:/bin"
 JAVA_OPTS=''
@@ -27,6 +28,7 @@ start() {
 		ARGS="${JAVA_OPTS} -jar ${JARFILE}"
 		ARGS="${ARGS} --group=${GROUP}"
 		ARGS="${ARGS} --user=${USER}"
+		ARGS="${ARGS} --directory=${DIRECTORY}"
 		ARGS="${ARGS} ${CONTROL} ${SERVER}"
 		while :; do
 			PATH="${JAVA_PATH}" java ${ARGS} &
