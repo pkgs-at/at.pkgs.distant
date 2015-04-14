@@ -3,7 +3,7 @@
 # [ SysVinit with chkconfig ]
 #       Place this file into /etc/rc.d/init.d/distant-%2$s
 #       and run chkconfig --add distant-%2$s
-# chkconfig: 345 99 01
+# chkconfig: 2345 99 01
 # description: Distant Service for %2$s
 
 # [ FreeBSD ]
